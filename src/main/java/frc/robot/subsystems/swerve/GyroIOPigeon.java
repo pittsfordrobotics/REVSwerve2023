@@ -4,10 +4,10 @@ import com.ctre.phoenix.sensors.WPI_Pigeon2;
 import frc.robot.Constants;
 
 public class GyroIOPigeon implements GyroIO{
-    private final WPI_Pigeon2 pigeon = new WPI_Pigeon2(Constants.DRIVE_CAN_PIGEON);
+    private final WPI_Pigeon2 pigeon = new WPI_Pigeon2(Constants.SWERVE_CAN_PIGEON);
 
     public GyroIOPigeon() {
-        pigeon.configAllSettings(Constants.DRIVE_PIGEON_CONFIG);
+        pigeon.configAllSettings(Constants.SWERVE_PIGEON_CONFIG);
         pigeon.calibrate();
         pigeon.reset();
     }

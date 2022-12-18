@@ -5,28 +5,28 @@ import org.littletonrobotics.junction.AutoLog;
 public interface SwerveModuleIO {
     @AutoLog
     class SwerveModuleIOInputs {
-        public double drivePositionRad = 0.0;
-        public double driveVelocityRadPerSec = 0.0;
-        public double driveVelocityFilteredRadPerSec = 0.0;
+        public double drivePositionMeters = 0.0;
+        public double driveVelocityMetersPerSec = 0.0;
         public double driveAppliedVolts = 0.0;
-        public double[] driveCurrentAmps = new double[] {};
-        public double[] driveTempCelcius = new double[] {};
+        public double driveCurrentAmps = 0.0;
+        public double driveTempCelcius = 0.0;
 
-        public double turnAbsolutePositionRad = 0.0;
-        public double turnPositionRad = 0.0;
-        public double turnVelocityRadPerSec = 0.0;
-        public double turnAppliedVolts = 0.0;
-        public double[] turnCurrentAmps = new double[] {};
-        public double[] turnTempCelcius = new double[] {};
+        public double steerAbsolutePositionRad = 0.0;
+        public double steerAbsoluteVelocityRadPerSec = 0.0;
+        public double steerPositionRad = 0.0;
+        public double steerVelocityRadPerSec = 0.0;
+        public double steerAppliedVolts = 0.0;
+        public double steerCurrentAmps = 0.0;
+        public double steerTempCelcius = 0.0;
     }
 
-    public default void updateInputs(SwerveModuleIOInputs inputs) {}
+    default void updateInputs(SwerveModuleIOInputs inputs) {}
 
-    public default void setDriveVoltage(double volts) {}
+    default void setDriveVoltage(double voltage) {}
 
-    public default void setSteerVoltage(double volts) {}
+    default void setSteerVoltage(double voltage) {}
 
-    public default void setDriveBrakeMode(boolean enable) {}
+    default void setDriveBrakeMode(boolean enable) {}
 
-    public default void setSteerBrakeMode(boolean enable) {}
+    default void setSteerBrakeMode(boolean enable) {}
 }

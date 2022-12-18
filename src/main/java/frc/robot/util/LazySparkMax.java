@@ -3,7 +3,9 @@ package frc.robot.util;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.REVLibError;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotController;
 import frc.robot.Constants;
+import frc.robot.RobotContainer;
 import frc.robot.util.Alert.AlertType;
 import org.littletonrobotics.junction.Logger;
 
@@ -75,7 +77,7 @@ public class LazySparkMax extends CANSparkMax {
             errors += check(burnFlash());
         }
         if (errors > 0) {
-            Logger.getInstance().recordOutput("SparkMAXes/" + Constants.ROBOT_SPARKMAX_HASHMAP.get(port) + port,"FAILED");
+            new Alert("SparkMAX Errors", Constants.ROBOT_SPARKMAX_HASHMAP.get(port) + " FAILED to initialize (" + port + ").", AlertType.ERROR).set(true);
         }
     }
 
@@ -88,6 +90,10 @@ public class LazySparkMax extends CANSparkMax {
      */
     public LazySparkMax(int port, IdleMode mode, int currentLimit, CANSparkMax leader) {
         this(port, mode, currentLimit, leader, false);
+    }
+
+    public double getAppliedVoltage() {
+        return RobotController.getBatteryVoltage() * getAppliedOutput();
     }
 
     /**

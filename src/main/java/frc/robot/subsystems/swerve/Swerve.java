@@ -1,6 +1,10 @@
 package frc.robot.subsystems.swerve;
 
 
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import org.littletonrobotics.junction.Logger;
@@ -8,9 +12,9 @@ import org.littletonrobotics.junction.Logger;
 public class Swerve extends SubsystemBase {
     /*
      * Swerve Module Orientation
-     *         FL  FR
+     *        FL  FR
      *
-     *         BL  BR
+     *        BL  BR
      */
     private final SwerveModuleIO[] moduleIO;
     private final SwerveModuleIOInputsAutoLogged[] moduleInputs = {};
@@ -18,8 +22,8 @@ public class Swerve extends SubsystemBase {
     public enum Modules {
         FRONT_LEFT(0), FRONT_RIGHT(1), BOTTOM_LEFT(2), BOTTOM_RIGHT(3);
 
-        public int id;
-        private Modules(int id){
+        final int id;
+        Modules(int id){
             this.id = id;
         }
         public int getId() {
@@ -29,6 +33,15 @@ public class Swerve extends SubsystemBase {
 
     private final GyroIO gyroIO;
     private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
+
+    private final SwerveDriveKinematics driveKinematics = new SwerveDriveKinematics(Constants.SWERVE_MODULE_OFFSETS);
+    private final SwerveModulePosition[] modulePositions = {
+            new SwerveModulePosition(),
+            new SwerveModulePosition(),
+            new SwerveModulePosition(),
+            new SwerveModulePosition(),
+    };
+    private final SwerveDriveOdometry odometry = new SwerveDriveOdometry(driveKinematics, new Rotation2d(0), modulePositions);
 
     private final static Swerve INSTANCE = new Swerve(Constants.ROBOT_FL_SWERVE_MODULE, Constants.ROBOT_FR_SWERVE_MODULE, Constants.ROBOT_BL_SWERVE_MODULE, Constants.ROBOT_BR_SWERVE_MODULE, Constants.ROBOT_GYRO);
 
