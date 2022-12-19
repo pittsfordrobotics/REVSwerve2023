@@ -1,12 +1,13 @@
 package frc.robot.subsystems.swerve;
 
 
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.kinematics.*;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.util.SwerveOptimizer;
 import org.littletonrobotics.junction.Logger;
 
 public class Swerve extends SubsystemBase {
@@ -17,7 +18,7 @@ public class Swerve extends SubsystemBase {
      *        BL  BR
      */
     private final SwerveModuleIO[] moduleIO;
-    private final SwerveModuleIOInputsAutoLogged[] moduleInputs = {};
+    private final SwerveModuleIOInputsAutoLogged[] moduleInputs = new SwerveModuleIOInputsAutoLogged[4];
 
     public enum Modules {
         FRONT_LEFT(0), FRONT_RIGHT(1), BOTTOM_LEFT(2), BOTTOM_RIGHT(3);
@@ -35,13 +36,10 @@ public class Swerve extends SubsystemBase {
     private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
 
     private final SwerveDriveKinematics driveKinematics = new SwerveDriveKinematics(Constants.SWERVE_MODULE_OFFSETS);
-    private final SwerveModulePosition[] modulePositions = {
-            new SwerveModulePosition(),
-            new SwerveModulePosition(),
-            new SwerveModulePosition(),
-            new SwerveModulePosition(),
-    };
-    private final SwerveDriveOdometry odometry = new SwerveDriveOdometry(driveKinematics, new Rotation2d(0), modulePositions);
+    private final SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
+    private final ChassisSpeeds chassisSpeeds = new ChassisSpeeds();
+
+    private final SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(driveKinematics, new Rotation2d(), modulePositions, new Pose2d());
 
     private final static Swerve INSTANCE = new Swerve(Constants.ROBOT_FL_SWERVE_MODULE, Constants.ROBOT_FR_SWERVE_MODULE, Constants.ROBOT_BL_SWERVE_MODULE, Constants.ROBOT_BR_SWERVE_MODULE, Constants.ROBOT_GYRO);
 
@@ -66,5 +64,61 @@ public class Swerve extends SubsystemBase {
 
         gyroIO.updateInputs(gyroInputs);
         Logger.getInstance().processInputs("Gyro", gyroInputs);
+
+        for (int i = 0; i < 4; i++) {
+//            this uses relative steer encoder, this could also use absolute if needed
+            modulePositions[i] = new SwerveModulePosition(moduleInputs[i].drivePositionMeters, Rotation2d.fromRadians(moduleInputs[i].steerPositionRad));
+        }
+        poseEstimator.update(getRotation(), modulePositions);
+    }
+
+    public void setModuleStates(SwerveModuleState[] desiredModuleStates) {
+        for (int i = 0; i < 4; i++) {
+            moduleIO[i].setModuleState(SwerveOptimizer.optimize(desiredModuleStates[i], modulePositions[i].angle));
+        }
+    }
+
+    public void setModuleStates(ChassisSpeeds speeds) {
+        SwerveModuleState[] desiredModuleStates = driveKinematics.toSwerveModuleStates(speeds);
+        for (int i = 0; i < 4; i++) {
+            moduleIO[i].setModuleState(SwerveOptimizer.optimize(desiredModuleStates[i], modulePositions[i].angle));
+        }
+    }
+
+    public void driveFieldOrientated(double vxMetersPerSecond, double vyMetersPerSecond, double omegaRadiansPerSecond) {
+        setModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, poseEstimator.getEstimatedPosition().getRotation()));
+    }
+
+//    drives wheels at x to prevent being shoved
+    public void driveX() {
+        setModuleStates(new SwerveModuleState[]{
+                new SwerveModuleState(0.1, Rotation2d.fromDegrees(-45)),
+                new SwerveModuleState(0.1, Rotation2d.fromDegrees(225)),
+                new SwerveModuleState(0.1, Rotation2d.fromDegrees(45)),
+                new SwerveModuleState(0.1, Rotation2d.fromDegrees(135)),
+        });
+    }
+
+    public void resetPose(Pose2d pose) {
+        poseEstimator.resetPosition(getRotation(), modulePositions, pose);
+    }
+
+    public void addVisionData(Pose2d pose, double time) {
+//        this is recommended, but I'm not sure if I like it
+//        if (GeomUtil.distance(pose, getPose()) < 1) {
+            poseEstimator.addVisionMeasurement(pose, time);
+//        }
+    }
+
+    public Pose2d getPose() {
+        return poseEstimator.getEstimatedPosition();
+    }
+
+    /**
+     * Gets the pigeon's angle
+     * @return current angle; positive = clockwise
+     */
+    public Rotation2d getRotation() {
+        return Rotation2d.fromRadians(-gyroInputs.yawPositionRad);
     }
 }

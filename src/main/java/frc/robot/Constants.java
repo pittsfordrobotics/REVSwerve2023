@@ -40,6 +40,11 @@ public final class Constants {
 
     /*  DRIVE: ALL IN METERS  */
     public static final int SWERVE_CAN_PIGEON = 0;
+    public static final Pigeon2Configuration SWERVE_PIGEON_CONFIG = new Pigeon2Configuration();
+    static {
+        SWERVE_PIGEON_CONFIG.EnableCompass = false;
+    }
+
     public static final int SWERVE_CAN_FL_DRIVE = 1;
     public static final int SWERVE_CAN_FL_STEER = 2;
     public static final int SWERVE_CAN_FR_DRIVE = 3;
@@ -50,17 +55,12 @@ public final class Constants {
     public static final int SWERVE_CAN_BR_STEER = 8;
 
     public static final int SWERVE_THROUGH_BORE_COUNTS_PER_REV = 8192;
-    public static final double SWERVE_WHEEL_DIAMETER = Units.inchesToMeters(3);
+    public static final double SWERVE_WHEEL_DIAMETER_METERS = Units.inchesToMeters(3);
     public static final double SWERVE_DRIVE_GEAR_RATIO = 5.08;
     public static final double SWERVE_STEER_GEAR_RATIO = 46.2962962963;
 
-    public static final double SWERVE_X_LENGTH = Units.inchesToMeters(30);
-    public static final double SWERVE_Y_LENGTH = Units.inchesToMeters(30);
-
-    public static final Pigeon2Configuration SWERVE_PIGEON_CONFIG = new Pigeon2Configuration();
-    static {
-        SWERVE_PIGEON_CONFIG.EnableCompass = false;
-    }
+    public static final double SWERVE_X_LENGTH_METERS = Units.inchesToMeters(30);
+    public static final double SWERVE_Y_LENGTH_METERS = Units.inchesToMeters(30);
 
     public static final Rotation2d SWERVE_FL_OFFSET = Rotation2d.fromDegrees(0);
     public static final Rotation2d SWERVE_FR_OFFSET = Rotation2d.fromDegrees(0);
@@ -68,11 +68,25 @@ public final class Constants {
     public static final Rotation2d SWERVE_BR_OFFSET = Rotation2d.fromDegrees(0);
 
     public static final Translation2d[] SWERVE_MODULE_OFFSETS = {
-        new Translation2d(-SWERVE_X_LENGTH / 2, SWERVE_Y_LENGTH / 2),
-        new Translation2d(SWERVE_X_LENGTH / 2, SWERVE_Y_LENGTH / 2),
-        new Translation2d(-SWERVE_X_LENGTH / 2, -SWERVE_Y_LENGTH / 2),
-        new Translation2d(SWERVE_X_LENGTH / 2, -SWERVE_Y_LENGTH / 2),
+        new Translation2d(-SWERVE_X_LENGTH_METERS / 2, SWERVE_Y_LENGTH_METERS / 2),
+        new Translation2d(SWERVE_X_LENGTH_METERS / 2, SWERVE_Y_LENGTH_METERS / 2),
+        new Translation2d(-SWERVE_X_LENGTH_METERS / 2, -SWERVE_Y_LENGTH_METERS / 2),
+        new Translation2d(SWERVE_X_LENGTH_METERS / 2, -SWERVE_Y_LENGTH_METERS / 2),
     };
+
+    public static final double SWERVE_MAX_LINEAR_VELOCITY_METERS_PER_SECOND = 2.46; // 4.12 m/s; 4.46 m/s; 4.8 m/s
+    public static final double SWERVE_MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND = 1; // idk what this should be around
+
+    public static final double SWERVE_DRIVE_P = 0;
+    public static final double SWERVE_DRIVE_I = 0;
+    public static final double SWERVE_DRIVE_D = 0;
+    public static final double SWERVE_DRIVE_S = 0;
+    public static final double SWERVE_DRIVE_V = 0;
+    public static final double SWERVE_DRIVE_A = 0;
+
+    public static final double SWERVE_STEER_P = 0;
+    public static final double SWERVE_STEER_I = 0;
+    public static final double SWERVE_STEER_D = 0;
 
     static {
         if (RobotBase.isReal() && ROBOT_DEMO_MODE) {

@@ -117,4 +117,9 @@ public class GeomUtil {
     public static Rotation2d direction(Translation2d translation) {
         return new Rotation2d(translation.getX(), translation.getY());
     }
+
+    public static double distance(Pose2d pose1, Pose2d pose2) {
+        Pose2d relPose = pose1.relativeTo(pose2);
+        return Math.sqrt(Math.pow(relPose.getX(), 2) + Math.pow(relPose.getY(), 2));
+    }
 }
