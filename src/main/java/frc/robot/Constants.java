@@ -25,6 +25,7 @@ public final class Constants {
     public static final String ROBOT_LOGGING_PATH = "/media/sda2/";
     public static final boolean ROBOT_PID_TUNER_ENABLED = false;
     public static final boolean ROBOT_DEMO_MODE = false;
+    public static final double ROBOT_LOOP_TIME_SECONDS = 0.02;
 
     public static final HashMap<Integer, String> ROBOT_SPARKMAX_HASHMAP = new HashMap<>();
     static {

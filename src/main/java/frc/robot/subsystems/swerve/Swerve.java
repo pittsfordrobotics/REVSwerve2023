@@ -4,9 +4,11 @@ package frc.robot.subsystems.swerve;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.*;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
+import frc.robot.util.GeomUtil;
 import frc.robot.util.SwerveOptimizer;
 import org.littletonrobotics.junction.Logger;
 
@@ -79,7 +81,15 @@ public class Swerve extends SubsystemBase {
     }
 
     public void setModuleStates(ChassisSpeeds speeds) {
-        SwerveModuleState[] desiredModuleStates = driveKinematics.toSwerveModuleStates(speeds);
+//        254 method of dealing with skew
+        Pose2d robot_pose_vel = new Pose2d(speeds.vxMetersPerSecond * Constants.ROBOT_LOOP_TIME_SECONDS,
+                speeds.vyMetersPerSecond * Constants.ROBOT_LOOP_TIME_SECONDS,
+                Rotation2d.fromRadians(speeds.vyMetersPerSecond * Constants.ROBOT_LOOP_TIME_SECONDS));
+        Twist2d twist_vel = GeomUtil.log(robot_pose_vel);
+        ChassisSpeeds updated_chassis_speeds = new ChassisSpeeds(
+                twist_vel.dx / Constants.ROBOT_LOOP_TIME_SECONDS, twist_vel.dy / Constants.ROBOT_LOOP_TIME_SECONDS, twist_vel.dtheta / Constants.ROBOT_LOOP_TIME_SECONDS);
+
+        SwerveModuleState[] desiredModuleStates = driveKinematics.toSwerveModuleStates(updated_chassis_speeds);
         for (int i = 0; i < 4; i++) {
             moduleIO[i].setModuleState(SwerveOptimizer.optimize(desiredModuleStates[i], modulePositions[i].angle));
         }

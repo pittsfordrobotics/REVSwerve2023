@@ -12,6 +12,8 @@ import edu.wpi.first.math.geometry.Twist2d;
 
 /** Geometry utilities for working with translations, rotations, transforms, and poses. */
 public class GeomUtil {
+    private final static double kEps = 1E-9;
+
     /**
      * Creates a pure translating transform
      *
@@ -121,5 +123,23 @@ public class GeomUtil {
     public static double distance(Pose2d pose1, Pose2d pose2) {
         Pose2d relPose = pose1.relativeTo(pose2);
         return Math.sqrt(Math.pow(relPose.getX(), 2) + Math.pow(relPose.getY(), 2));
+    }
+
+    /**
+     * Logical inverse of the above. from 254
+     */
+    public static Twist2d log(final Pose2d transform) {
+        final double dtheta = transform.getRotation().getRadians();
+        final double half_dtheta = 0.5 * dtheta;
+        final double cos_minus_one = transform.getRotation().getCos() - 1.0;
+        double halftheta_by_tan_of_halfdtheta;
+        if (Math.abs(cos_minus_one) < kEps) {
+            halftheta_by_tan_of_halfdtheta = 1.0 - 1.0 / 12.0 * dtheta * dtheta;
+        } else {
+            halftheta_by_tan_of_halfdtheta = -(half_dtheta * transform.getRotation().getSin()) / cos_minus_one;
+        }
+        final Translation2d translation_part = transform.getTranslation()
+                .rotateBy(new Rotation2d(halftheta_by_tan_of_halfdtheta, -half_dtheta));
+        return new Twist2d(translation_part.getX(), translation_part.getY(), dtheta);
     }
 }
