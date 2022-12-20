@@ -1,6 +1,5 @@
 package frc.robot.subsystems.swerve;
 
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import org.littletonrobotics.junction.AutoLog;
 
@@ -33,6 +32,4 @@ public interface SwerveModuleIO {
     default void setDriveBrakeMode(boolean enable) {}
 
     default void setSteerBrakeMode(boolean enable) {}
-
-    default void setSteerPosition(double radians) {}
 }

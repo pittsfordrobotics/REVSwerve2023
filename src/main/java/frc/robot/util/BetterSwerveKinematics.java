@@ -84,6 +84,7 @@ public class BetterSwerveKinematics {
             return m_moduleStates;
         }
 
+        SimpleMatrix bigInverseKinematics = new SimpleMatrix(m_numModules * 2, 4);
         if (!centerOfRotationMeters.equals(m_prevCoR)) {
             for (int i = 0; i < m_numModules; i++) {
                 m_inverseKinematics.setRow(
@@ -98,6 +99,20 @@ public class BetterSwerveKinematics {
                         0,
                         1,
                         +m_modules[i].getX() - centerOfRotationMeters.getX());
+                bigInverseKinematics.setRow(
+                        i * 2 + 0,
+                        0, /* Start Data */
+                        1,
+                        0,
+                        -m_modules[i].getX() + centerOfRotationMeters.getX(),
+                        -m_modules[i].getY() + centerOfRotationMeters.getY());
+                bigInverseKinematics.setRow(
+                        i * 2 + 1,
+                        0, /* Start Data */
+                        0,
+                        1,
+                        -m_modules[i].getY() + centerOfRotationMeters.getY(),
+                        +m_modules[i].getX() - centerOfRotationMeters.getX());
             }
             m_prevCoR = centerOfRotationMeters;
         }
@@ -110,14 +125,56 @@ public class BetterSwerveKinematics {
                 chassisSpeeds.vyMetersPerSecond,
                 chassisSpeeds.omegaRadiansPerSecond);
 
-        var moduleStatesMatrix = m_inverseKinematics.mult(chassisSpeedsVector);
+        var moduleVelocityStatesMatrix = m_inverseKinematics.mult(chassisSpeedsVector);
+
+        var accelerationVector = new SimpleMatrix(4, 1);
+        accelerationVector.setColumn(
+                0,
+                0,
+                0,
+                0,
+                0,
+                Math.pow(chassisSpeeds.omegaRadiansPerSecond, 2),
+                0
+        );
+
+        var moduleAccelerationStatesMatrix = bigInverseKinematics.mult(accelerationVector);
 
         for (int i = 0; i < m_numModules; i++) {
-            double x = moduleStatesMatrix.get(i * 2, 0);
-            double y = moduleStatesMatrix.get(i * 2 + 1, 0);
+            double x = moduleVelocityStatesMatrix.get(i * 2, 0);
+            double y = moduleVelocityStatesMatrix.get(i * 2 + 1, 0);
+
+            double ax = moduleAccelerationStatesMatrix.get(i * 2, 0);
+            double ay = moduleAccelerationStatesMatrix.get(i * 2 + 1, 0);
 
             double speed = Math.hypot(x, y);
             Rotation2d angle = new Rotation2d(x, y);
+
+            var trigThetaAngle = new SimpleMatrix(2, 2);
+            trigThetaAngle.setColumn(
+                0,
+                0,
+                angle.getCos(),
+                -angle.getSin()
+            );
+            trigThetaAngle.setColumn(
+                    1,
+                    0,
+                    angle.getSin(),
+                    angle.getCos()
+            );
+
+            var accelVector = new SimpleMatrix(2, 1);
+            accelVector.setColumn(
+                    0,
+                    0,
+                    ax,
+                    ay
+            );
+
+            var omegaVector = trigThetaAngle.mult(accelerationVector);
+
+            double omega = omegaVector.get(1, 0) / speed;
 
             m_moduleStates[i] = new SwerveModuleState(speed, angle);
         }
