@@ -1,6 +1,7 @@
 package frc.robot.subsystems.swerve;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
@@ -8,9 +9,11 @@ import frc.robot.Constants;
 
 public class SwerveModuleIOSim implements SwerveModuleIO {
     private FlywheelSim driveSim =
-            new FlywheelSim(DCMotor.getNEO(1), 6.75, 0.025);
+            new FlywheelSim(DCMotor.getNEO(1), Constants.SWERVE_DRIVE_GEAR_RATIO, 0.025);
     private FlywheelSim turnSim =
-            new FlywheelSim(DCMotor.getNEO(1), 150.0 / 7.0, 0.004096955);
+            new FlywheelSim(DCMotor.getNEO(1), Constants.SWERVE_STEER_GEAR_RATIO, 0.004096955);
+    private PIDController drivePID = new PIDController(0.6, 0, 0);
+    private PIDController steerPID = new PIDController(0.1, 0, 0);
 
     private double turnRelativePositionRad = 0.0;
     private double turnAbsolutePositionRad = Math.random() * 2.0 * Math.PI;
@@ -32,9 +35,9 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
             turnAbsolutePositionRad -= 2.0 * Math.PI;
         }
 
+        inputs.driveVelocityMetersPerSec = driveSim.getAngularVelocityRadPerSec() * Math.PI * Constants.SWERVE_WHEEL_DIAMETER_METERS / 6.75;
         inputs.drivePositionMeters = inputs.drivePositionMeters
-                + (driveSim.getAngularVelocityRadPerSec() * Constants.ROBOT_LOOP_TIME_SECONDS);
-        inputs.driveVelocityMetersPerSec = driveSim.getAngularVelocityRadPerSec() ;
+                + (inputs.driveVelocityMetersPerSec * Constants.ROBOT_LOOP_TIME_SECONDS);
         inputs.driveAppliedVolts = driveAppliedVolts;
         inputs.driveCurrentAmps = Math.abs(driveSim.getCurrentDrawAmps());
         inputs.driveTempCelcius = 0;
@@ -62,5 +65,7 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
 
     @Override
     public void setModuleState(SwerveModuleState state) {
+        driveSim.setInputVoltage(drivePID.calculate(state.speedMetersPerSecond));
+        turnSim.setInputVoltage(drivePID.calculate(turnAbsolutePositionRad - state.angle.getRadians()));
     }
 }

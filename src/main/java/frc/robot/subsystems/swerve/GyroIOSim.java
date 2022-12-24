@@ -2,9 +2,6 @@ package frc.robot.subsystems.swerve;
 
 public class GyroIOSim implements GyroIO{
 
-    public GyroIOSim() {
-    }
-
     @Override
     public void updateInputs(GyroIOInputs inputs) {
         inputs.connected = true;

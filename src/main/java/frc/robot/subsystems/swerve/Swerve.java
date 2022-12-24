@@ -19,7 +19,7 @@ public class Swerve extends SubsystemBase {
      *        BL  BR
      */
     private final SwerveModuleIO[] moduleIO;
-    private final SwerveModuleIOInputsAutoLogged[] moduleInputs = new SwerveModuleIOInputsAutoLogged[4];
+    private final SwerveModuleIOInputsAutoLogged[] moduleInputs = new SwerveModuleIOInputsAutoLogged[] {new SwerveModuleIOInputsAutoLogged(), new SwerveModuleIOInputsAutoLogged(), new SwerveModuleIOInputsAutoLogged(), new SwerveModuleIOInputsAutoLogged()};
 
     public enum Modules {
         FRONT_LEFT(0), FRONT_RIGHT(1), BOTTOM_LEFT(2), BOTTOM_RIGHT(3);
@@ -38,9 +38,9 @@ public class Swerve extends SubsystemBase {
 
     private final SwerveDriveKinematics driveKinematics = new SwerveDriveKinematics(Constants.SWERVE_MODULE_OFFSETS);
     private final SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
-    private final ChassisSpeeds chassisSpeeds = new ChassisSpeeds();
+    private SwerveModuleState[] moduleStates = new SwerveModuleState[]{new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState()};
 
-    private final SwerveDrivePoseEstimator poseEstimator = new SwerveDrivePoseEstimator(driveKinematics, new Rotation2d(), modulePositions, new Pose2d());
+    private final SwerveDrivePoseEstimator poseEstimator;
 
     private final static Swerve INSTANCE = new Swerve(Constants.ROBOT_FL_SWERVE_MODULE, Constants.ROBOT_FR_SWERVE_MODULE, Constants.ROBOT_BL_SWERVE_MODULE, Constants.ROBOT_BR_SWERVE_MODULE, Constants.ROBOT_GYRO);
 
@@ -51,17 +51,29 @@ public class Swerve extends SubsystemBase {
     private Swerve(SwerveModuleIO FL, SwerveModuleIO FR, SwerveModuleIO BL, SwerveModuleIO BR, GyroIO gyro) {
         moduleIO = new SwerveModuleIO[]{FL, FR, BL, BR};
         gyroIO = gyro;
+
+        for (int i = 0; i < 4; i++) {
+            moduleIO[i].updateInputs(moduleInputs[i]);
+        }
+        for (int i = 0; i < 4; i++) {
+//            this uses relative steer encoder, this could also use absolute if needed
+            modulePositions[i] = new SwerveModulePosition(moduleInputs[i].drivePositionMeters, Rotation2d.fromRadians(moduleInputs[i].steerPositionRad));
+        }
+
+        poseEstimator = new SwerveDrivePoseEstimator(driveKinematics, new Rotation2d(), modulePositions, new Pose2d());
     }
 
     @Override
     public void periodic() {
+        SwerveModuleState[] actualStates = new SwerveModuleState[4];
         for (int i = 0; i < 4; i++) {
             moduleIO[i].updateInputs(moduleInputs[i]);
+            actualStates[i] = new SwerveModuleState(moduleInputs[i].driveVelocityMetersPerSec, Rotation2d.fromRadians(moduleInputs[i].steerPositionRad));
         }
-        Logger.getInstance().processInputs("Front Left Swerve Module", moduleInputs[0]);
-        Logger.getInstance().processInputs("Front Right Swerve Module", moduleInputs[1]);
-        Logger.getInstance().processInputs("Back Left Swerve Module", moduleInputs[2]);
-        Logger.getInstance().processInputs("Back Right Swerve Module", moduleInputs[3]);
+        Logger.getInstance().processInputs("FL Swerve Module", moduleInputs[0]);
+        Logger.getInstance().processInputs("FR Swerve Module", moduleInputs[1]);
+        Logger.getInstance().processInputs("BL Swerve Module", moduleInputs[2]);
+        Logger.getInstance().processInputs("BR Swerve Module", moduleInputs[3]);
 
         gyroIO.updateInputs(gyroInputs);
         Logger.getInstance().processInputs("Gyro", gyroInputs);
@@ -71,12 +83,19 @@ public class Swerve extends SubsystemBase {
             modulePositions[i] = new SwerveModulePosition(moduleInputs[i].drivePositionMeters, Rotation2d.fromRadians(moduleInputs[i].steerPositionRad));
         }
         poseEstimator.update(getRotation(), modulePositions);
+
+        Logger.getInstance().recordOutput("Pose", getPose());
+        Logger.getInstance().recordOutput("Wanted States", moduleStates);
+        Logger.getInstance().recordOutput("Actual States", actualStates);
     }
 
     public void setModuleStates(SwerveModuleState[] desiredModuleStates) {
+        SwerveModuleState[] wantedModuleStates = new SwerveModuleState[4];
         for (int i = 0; i < 4; i++) {
+            wantedModuleStates[i] = SwerveOptimizer.optimize(desiredModuleStates[i], modulePositions[i].angle);
             moduleIO[i].setModuleState(SwerveOptimizer.optimize(desiredModuleStates[i], modulePositions[i].angle));
         }
+        moduleStates = wantedModuleStates;
     }
 
     public void setModuleStates(ChassisSpeeds speeds) {
@@ -89,13 +108,14 @@ public class Swerve extends SubsystemBase {
                 twist_vel.dx / Constants.ROBOT_LOOP_TIME_SECONDS, twist_vel.dy / Constants.ROBOT_LOOP_TIME_SECONDS, twist_vel.dtheta / Constants.ROBOT_LOOP_TIME_SECONDS);
 
         SwerveModuleState[] desiredModuleStates = driveKinematics.toSwerveModuleStates(updated_chassis_speeds);
+        moduleStates = desiredModuleStates;
         for (int i = 0; i < 4; i++) {
             moduleIO[i].setModuleState(SwerveOptimizer.optimize(desiredModuleStates[i], modulePositions[i].angle));
         }
     }
 
     public void driveFieldOrientated(double vxMetersPerSecond, double vyMetersPerSecond, double omegaRadiansPerSecond) {
-        setModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, poseEstimator.getEstimatedPosition().getRotation()));
+        setModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, getPose().getRotation()));
     }
 
 //    drives wheels at x to prevent being shoved

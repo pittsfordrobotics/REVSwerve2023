@@ -8,7 +8,6 @@ public class GyroIOPigeon implements GyroIO{
 
     public GyroIOPigeon() {
         pigeon.configAllSettings(Constants.SWERVE_PIGEON_CONFIG);
-        pigeon.calibrate();
         pigeon.reset();
     }
 
