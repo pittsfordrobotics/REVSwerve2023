@@ -79,7 +79,6 @@ public class Swerve extends SubsystemBase {
         Logger.getInstance().processInputs("Gyro", gyroInputs);
 
         for (int i = 0; i < 4; i++) {
-//            this uses relative steer encoder, this could also use absolute if needed
             modulePositions[i] = new SwerveModulePosition(moduleInputs[i].drivePositionMeters, Rotation2d.fromRadians(moduleInputs[i].steerPositionRad));
         }
         poseEstimator.update(getRotation(), modulePositions);
@@ -90,28 +89,25 @@ public class Swerve extends SubsystemBase {
     }
 
     public void setModuleStates(SwerveModuleState[] desiredModuleStates) {
-        SwerveModuleState[] wantedModuleStates = new SwerveModuleState[4];
+        SwerveModuleState[] moduleStatesOptimized = new SwerveModuleState[4];
         for (int i = 0; i < 4; i++) {
-            wantedModuleStates[i] = SwerveOptimizer.optimize(desiredModuleStates[i], modulePositions[i].angle);
-            moduleIO[i].setModuleState(SwerveOptimizer.optimize(desiredModuleStates[i], modulePositions[i].angle));
+            moduleStatesOptimized[i] = SwerveOptimizer.optimize(desiredModuleStates[i], modulePositions[i].angle);
+            moduleIO[i].setModuleState(moduleStatesOptimized[i]);
         }
-        moduleStates = wantedModuleStates;
+        moduleStates = moduleStatesOptimized;
     }
 
     public void setModuleStates(ChassisSpeeds speeds) {
 //        254 method of dealing with skew
         Pose2d robot_pose_vel = new Pose2d(speeds.vxMetersPerSecond * Constants.ROBOT_LOOP_TIME_SECONDS,
                 speeds.vyMetersPerSecond * Constants.ROBOT_LOOP_TIME_SECONDS,
-                Rotation2d.fromRadians(speeds.vyMetersPerSecond * Constants.ROBOT_LOOP_TIME_SECONDS));
+                Rotation2d.fromRadians(speeds.omegaRadiansPerSecond * Constants.ROBOT_LOOP_TIME_SECONDS));
         Twist2d twist_vel = GeomUtil.log(robot_pose_vel);
         ChassisSpeeds updated_chassis_speeds = new ChassisSpeeds(
                 twist_vel.dx / Constants.ROBOT_LOOP_TIME_SECONDS, twist_vel.dy / Constants.ROBOT_LOOP_TIME_SECONDS, twist_vel.dtheta / Constants.ROBOT_LOOP_TIME_SECONDS);
 
         SwerveModuleState[] desiredModuleStates = driveKinematics.toSwerveModuleStates(updated_chassis_speeds);
-        moduleStates = desiredModuleStates;
-        for (int i = 0; i < 4; i++) {
-            moduleIO[i].setModuleState(SwerveOptimizer.optimize(desiredModuleStates[i], modulePositions[i].angle));
-        }
+        setModuleStates(desiredModuleStates);
     }
 
     public void driveFieldOrientated(double vxMetersPerSecond, double vyMetersPerSecond, double omegaRadiansPerSecond) {

@@ -69,14 +69,14 @@ public final class Constants {
     public static final Rotation2d SWERVE_BR_OFFSET = Rotation2d.fromDegrees(0);
 
     public static final Translation2d[] SWERVE_MODULE_OFFSETS = {
-        new Translation2d(-SWERVE_X_LENGTH_METERS / 2, SWERVE_Y_LENGTH_METERS / 2),
-        new Translation2d(SWERVE_X_LENGTH_METERS / 2, SWERVE_Y_LENGTH_METERS / 2),
-        new Translation2d(-SWERVE_X_LENGTH_METERS / 2, -SWERVE_Y_LENGTH_METERS / 2),
-        new Translation2d(SWERVE_X_LENGTH_METERS / 2, -SWERVE_Y_LENGTH_METERS / 2),
+        new Translation2d(SWERVE_X_LENGTH_METERS / 2, SWERVE_Y_LENGTH_METERS / 2), // FL
+        new Translation2d(SWERVE_X_LENGTH_METERS / 2, -SWERVE_Y_LENGTH_METERS / 2), // FR
+        new Translation2d(-SWERVE_X_LENGTH_METERS / 2, SWERVE_Y_LENGTH_METERS / 2), // BL
+        new Translation2d(-SWERVE_X_LENGTH_METERS / 2, -SWERVE_Y_LENGTH_METERS / 2), // BR
     };
 
-    public static final double SWERVE_MAX_LINEAR_VELOCITY_METERS_PER_SECOND = 2.46; // 4.12 m/s; 4.46 m/s; 4.8 m/s
-    public static final double SWERVE_MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND = 1; // idk what this should be around
+    public static final double SWERVE_MAX_LINEAR_VELOCITY_METERS_PER_SECOND = 4.46; // 4.12 m/s; 4.46 m/s; 4.8 m/s
+    public static final double SWERVE_MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND = 3; // idk what this should be around
 
     public static final double SWERVE_DRIVE_P = 0;
     public static final double SWERVE_DRIVE_I = 0;

@@ -18,7 +18,7 @@ public class SwerveDriveFieldXbox extends CommandBase {
     public void execute() {
         swerve.driveFieldOrientated(
             -BetterXboxController.getController(Humans.DRIVER).getLeftY() * Constants.SWERVE_MAX_LINEAR_VELOCITY_METERS_PER_SECOND,
-            BetterXboxController.getController(Humans.DRIVER).getLeftX() * Constants.SWERVE_MAX_LINEAR_VELOCITY_METERS_PER_SECOND,
+            -BetterXboxController.getController(Humans.DRIVER).getLeftX() * Constants.SWERVE_MAX_LINEAR_VELOCITY_METERS_PER_SECOND,
             BetterXboxController.getController(Humans.DRIVER).getRightX() * Constants.SWERVE_MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND
         );
     }

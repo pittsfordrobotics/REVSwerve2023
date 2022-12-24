@@ -11,12 +11,12 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
     private FlywheelSim driveSim =
             new FlywheelSim(DCMotor.getNEO(1), Constants.SWERVE_DRIVE_GEAR_RATIO, 0.025);
     private FlywheelSim turnSim =
-            new FlywheelSim(DCMotor.getNEO(1), Constants.SWERVE_STEER_GEAR_RATIO, 0.004096955);
-    private PIDController drivePID = new PIDController(0.6, 0, 0);
-    private PIDController steerPID = new PIDController(0.1, 0, 0);
+            new FlywheelSim(DCMotor.getNeo550(1), Constants.SWERVE_STEER_GEAR_RATIO, 0.004096955);
+    private PIDController drivePID = new PIDController(10, 0, 0);
+    private PIDController steerPID = new PIDController(5, 0, 0);
 
-    private double turnRelativePositionRad = 0.0;
     private double turnAbsolutePositionRad = Math.random() * 2.0 * Math.PI;
+    private double turnRelativePositionRad = turnAbsolutePositionRad;
     private double driveAppliedVolts = 0.0;
     private double turnAppliedVolts = 0.0;
 
@@ -35,7 +35,7 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
             turnAbsolutePositionRad -= 2.0 * Math.PI;
         }
 
-        inputs.driveVelocityMetersPerSec = driveSim.getAngularVelocityRadPerSec() * Math.PI * Constants.SWERVE_WHEEL_DIAMETER_METERS / 6.75;
+        inputs.driveVelocityMetersPerSec = driveSim.getAngularVelocityRadPerSec() * Math.PI * Constants.SWERVE_WHEEL_DIAMETER_METERS / Constants.SWERVE_DRIVE_GEAR_RATIO;
         inputs.drivePositionMeters = inputs.drivePositionMeters
                 + (inputs.driveVelocityMetersPerSec * Constants.ROBOT_LOOP_TIME_SECONDS);
         inputs.driveAppliedVolts = driveAppliedVolts;
@@ -65,7 +65,9 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
 
     @Override
     public void setModuleState(SwerveModuleState state) {
-        driveSim.setInputVoltage(drivePID.calculate(state.speedMetersPerSecond));
-        turnSim.setInputVoltage(drivePID.calculate(turnAbsolutePositionRad - state.angle.getRadians()));
+        drivePID.setSetpoint(state.speedMetersPerSecond);
+        driveSim.setInputVoltage(drivePID.calculate(driveSim.getAngularVelocityRadPerSec() * Math.PI * Constants.SWERVE_WHEEL_DIAMETER_METERS / Constants.SWERVE_DRIVE_GEAR_RATIO));
+        steerPID.setSetpoint(state.angle.getRadians());
+        turnSim.setInputVoltage(steerPID.calculate(turnRelativePositionRad));
     }
 }
