@@ -1,27 +1,63 @@
 package frc.robot.commands;
 
-
 import com.pathplanner.lib.PathPlannerTrajectory;
-import com.pathplanner.lib.commands.PPSwerveControllerCommand;
+import com.pathplanner.lib.PathPlannerTrajectory.PathPlannerState;
+import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.subsystems.swerve.Swerve;
 
-public class SwervePathing extends SequentialCommandGroup {
+
+public class SwervePathing extends CommandBase {
+    private final Swerve swerve = Swerve.getInstance();
+    private final Trajectory trajectory;
+    private final boolean reset;
+    private final Timer timer = new Timer();
+
+    private final PIDController xController = new PIDController(SwerveConstants.LINEAR_P, SwerveConstants.LINEAR_I, SwerveConstants.LINEAR_D);
+    private final PIDController yController = new PIDController(SwerveConstants.LINEAR_P, SwerveConstants.LINEAR_I, SwerveConstants.LINEAR_D);
+    private final ProfiledPIDController rotController = new ProfiledPIDController(SwerveConstants.ROT_P, SwerveConstants.ROT_I, SwerveConstants.ROT_D, SwerveConstants.ROT_CONSTRAINTS);
+    private final HolonomicDriveController holonomicDriveController = new HolonomicDriveController(xController, yController, rotController);
+
     public SwervePathing(PathPlannerTrajectory trajectory, boolean reset) {
-        super(
-                new SwerveResetPose(trajectory, reset),
-                new PPSwerveControllerCommand(
-                        trajectory,
-                        Swerve.getInstance()::getPose,
-                        Swerve.getInstance().getKinematics(),
-                        new PIDController(SwerveConstants.LINEAR_P, SwerveConstants.LINEAR_I, SwerveConstants.LINEAR_D),
-                        new PIDController(SwerveConstants.LINEAR_P, SwerveConstants.LINEAR_I, SwerveConstants.LINEAR_D),
-                        new PIDController(SwerveConstants.ROT_P, SwerveConstants.ROT_I, SwerveConstants.ROT_D),
-                        Swerve.getInstance()::setModuleStates,
-                        Swerve.getInstance()
-                )
-        );
+        addRequirements(this.swerve);
+        this.trajectory = trajectory;
+        this.reset = reset;
+    }
+
+    @Override
+    public void initialize() {
+        if (reset) {
+            swerve.resetPose(trajectory.getInitialPose());
+        }
+
+        xController.reset();
+        yController.reset();
+        rotController.reset(((PathPlannerState) trajectory.sample(0)).holonomicRotation.getDegrees());
+
+        timer.reset();
+        timer.start();
+    }
+
+    @Override
+    public void execute() {
+        PathPlannerState state = (PathPlannerState) trajectory.sample(timer.get());
+        ChassisSpeeds speeds = holonomicDriveController.calculate(swerve.getPose(), state, state.holonomicRotation);
+        swerve.setChassisSpeeds(speeds);
+    }
+
+    @Override
+    public boolean isFinished() {
+        return timer.hasElapsed(trajectory.getTotalTimeSeconds());
+    }
+
+    @Override
+    public void end(boolean interrupted) {
+        timer.stop();
     }
 }

@@ -8,6 +8,7 @@ import com.ctre.phoenix.sensors.Pigeon2Configuration;
 import com.pathplanner.lib.PathConstraints;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.subsystems.swerve.*;
@@ -100,12 +101,6 @@ public final class Constants {
         public static final Rotation2d BL_OFFSET = Rotation2d.fromDegrees(0);
         public static final Rotation2d BR_OFFSET = Rotation2d.fromDegrees(0);
 
-        public static final double MAX_MODULE_VELOCITY_METERS_PER_SECOND = 100;
-        public static final double MAX_LINEAR_VELOCITY_METERS_PER_SECOND = 4.46; // 4.12 m/s; 4.46 m/s; 4.8 m/s
-        public static final double MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND = 10; // idk what this should be around
-
-        public static final PathConstraints MAX_SPEED = new PathConstraints(MAX_LINEAR_VELOCITY_METERS_PER_SECOND, MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND);
-
         // controlling module wheel speed
         public static final double MODULE_DRIVE_P = 0;
         public static final double MODULE_DRIVE_I = 0;
@@ -123,13 +118,24 @@ public final class Constants {
         public static final double MODULE_STEER_FF = 1;
 
         // PID values for trajectory follower
-        public static final double LINEAR_P = 0;
+        public static final double LINEAR_P = 2;
         public static final double LINEAR_I = 0;
         public static final double LINEAR_D = 0;
 
-        public static final double ROT_P = 0;
+        public static final double ROT_P = 50;
         public static final double ROT_I = 0;
         public static final double ROT_D = 0;
+
+        public static final double MAX_MODULE_VELOCITY_METERS_PER_SECOND = 100;
+        public static final double MAX_LINEAR_VELOCITY_METERS_PER_SECOND = 4.46; // 4.12 m/s; 4.46 m/s; 4.8 m/s
+        public static final double MAX_LINEAR_ACCELERATION_METERS_PER_SECOND = 10;
+
+        public static final double MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND = 12; // idk what this should be around
+        public static final double MAX_ANGULAR_ACCELERATION_RADIANS_PER_SECOND = 100;
+
+        public static final PathConstraints MAX_SPEED = new PathConstraints(MAX_LINEAR_VELOCITY_METERS_PER_SECOND, MAX_LINEAR_ACCELERATION_METERS_PER_SECOND);
+        public static final TrapezoidProfile.Constraints ROT_CONSTRAINTS = new TrapezoidProfile.Constraints(MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND, MAX_ANGULAR_ACCELERATION_RADIANS_PER_SECOND);
+
     }
 
 }
