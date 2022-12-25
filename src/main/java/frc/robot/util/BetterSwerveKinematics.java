@@ -207,7 +207,7 @@ public class BetterSwerveKinematics {
      *     passed into the constructor of this class.
      * @return The resulting chassis speed.
      */
-    public ChassisSpeeds toChassisSpeeds(SwerveModuleState... wheelStates) {
+    public ChassisSpeeds toChassisSpeeds(BetterSwerveModuleState... wheelStates) {
         if (wheelStates.length != m_numModules) {
             throw new IllegalArgumentException(
                     "Number of modules is not consistent with number of wheel locations provided in "
@@ -270,7 +270,7 @@ public class BetterSwerveKinematics {
      * @param attainableMaxSpeedMetersPerSecond The absolute max speed that a module can reach.
      */
     public static void desaturateWheelSpeeds(
-            SwerveModuleState[] moduleStates, double attainableMaxSpeedMetersPerSecond) {
+            BetterSwerveModuleState[] moduleStates, double attainableMaxSpeedMetersPerSecond) {
         double realMaxSpeed = Collections.max(Arrays.asList(moduleStates)).speedMetersPerSecond;
         if (realMaxSpeed > attainableMaxSpeedMetersPerSecond) {
             for (SwerveModuleState moduleState : moduleStates) {
@@ -299,7 +299,7 @@ public class BetterSwerveKinematics {
      *     reach while rotating
      */
     public static void desaturateWheelSpeeds(
-            SwerveModuleState[] moduleStates,
+            BetterSwerveModuleState[] moduleStates,
             ChassisSpeeds currentChassisSpeed,
             double attainableMaxModuleSpeedMetersPerSecond,
             double attainableMaxTranslationalSpeedMetersPerSecond,

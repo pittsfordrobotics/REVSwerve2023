@@ -111,6 +111,9 @@ public class Swerve extends SubsystemBase {
         BetterSwerveModuleState[] moduleStatesOptimized = new BetterSwerveModuleState[4];
         for (int i = 0; i < 4; i++) {
             moduleStatesOptimized[i] = SwerveOptimizer.optimize(desiredModuleStates[i], modulePositions[i].angle);
+        }
+        BetterSwerveKinematics.desaturateWheelSpeeds(moduleStatesOptimized, Constants.SWERVE_MAX_MODULE_VELOCITY_METERS_PER_SECOND);
+        for (int i = 0; i < 4; i++) {
             moduleIO[i].setModuleState(moduleStatesOptimized[i]);
         }
         moduleStates = moduleStatesOptimized;
