@@ -76,6 +76,6 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
         drivePID.setSetpoint(state.speedMetersPerSecond);
         driveSim.setInputVoltage(drivePID.calculate(driveSim.getAngularVelocityRadPerSec() * Math.PI * SwerveConstants.WHEEL_DIAMETER_METERS / SwerveConstants.DRIVE_GEAR_RATIO));
         steerPosPID.setSetpoint(state.angle.getRadians());
-        steerSim.setInputVoltage(steerPosPID.calculate(steerRelativePositionRad) - state.omegaRadPerSecond);
+        steerSim.setInputVoltage(steerPosPID.calculate(steerRelativePositionRad) - 0.47 * state.omegaRadPerSecond);
     }
 }
