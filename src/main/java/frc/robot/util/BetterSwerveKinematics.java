@@ -9,6 +9,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import org.ejml.simple.SimpleMatrix;
+import org.littletonrobotics.junction.Logger;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -17,10 +18,11 @@ import java.util.Collections;
 public class BetterSwerveKinematics {
     private final SimpleMatrix m_inverseKinematics;
     private final SimpleMatrix m_forwardKinematics;
+    private final SimpleMatrix bigInverseKinematics;
 
     private final int m_numModules;
     private final Translation2d[] m_modules;
-    private final SwerveModuleState[] m_moduleStates;
+    private final BetterSwerveModuleState[] m_moduleStates;
     private Translation2d m_prevCoR = new Translation2d();
 
     /**
@@ -37,13 +39,16 @@ public class BetterSwerveKinematics {
         }
         m_numModules = wheelsMeters.length;
         m_modules = Arrays.copyOf(wheelsMeters, m_numModules);
-        m_moduleStates = new SwerveModuleState[m_numModules];
-        Arrays.fill(m_moduleStates, new SwerveModuleState());
+        m_moduleStates = new BetterSwerveModuleState[m_numModules];
+        Arrays.fill(m_moduleStates, new BetterSwerveModuleState());
         m_inverseKinematics = new SimpleMatrix(m_numModules * 2, 3);
+        bigInverseKinematics = new SimpleMatrix(m_numModules * 2, 4);
 
         for (int i = 0; i < m_numModules; i++) {
             m_inverseKinematics.setRow(i * 2 + 0, 0, /* Start Data */ 1, 0, -m_modules[i].getY());
             m_inverseKinematics.setRow(i * 2 + 1, 0, /* Start Data */ 0, 1, +m_modules[i].getX());
+            bigInverseKinematics.setRow(i * 2 + 0, 0, /* Start Data */ 1, 0, -m_modules[i].getX(), -m_modules[i].getY());
+            bigInverseKinematics.setRow(i * 2 + 1, 0, /* Start Data */ 0, 1, -m_modules[i].getY(), +m_modules[i].getX());
         }
         m_forwardKinematics = m_inverseKinematics.pseudoInverse();
 
@@ -72,7 +77,7 @@ public class BetterSwerveKinematics {
      *     DesaturateWheelSpeeds} function to rectify this issue.
      */
     @SuppressWarnings("PMD.MethodReturnsInternalArray")
-    public SwerveModuleState[] toSwerveModuleStates(
+    public BetterSwerveModuleState[] toSwerveModuleStates(
             ChassisSpeeds chassisSpeeds, Translation2d centerOfRotationMeters) {
         if (chassisSpeeds.vxMetersPerSecond == 0.0
                 && chassisSpeeds.vyMetersPerSecond == 0.0
@@ -84,7 +89,7 @@ public class BetterSwerveKinematics {
             return m_moduleStates;
         }
 
-        SimpleMatrix bigInverseKinematics = new SimpleMatrix(m_numModules * 2, 4);
+
         if (!centerOfRotationMeters.equals(m_prevCoR)) {
             for (int i = 0; i < m_numModules; i++) {
                 m_inverseKinematics.setRow(
@@ -133,7 +138,6 @@ public class BetterSwerveKinematics {
                 0,
                 0,
                 0,
-                0,
                 Math.pow(chassisSpeeds.omegaRadiansPerSecond, 2),
                 0
         );
@@ -146,6 +150,7 @@ public class BetterSwerveKinematics {
 
             double ax = moduleAccelerationStatesMatrix.get(i * 2, 0);
             double ay = moduleAccelerationStatesMatrix.get(i * 2 + 1, 0);
+            Logger.getInstance().recordOutput("ax", moduleAccelerationStatesMatrix.get(i * 2, 0));
 
             double speed = Math.hypot(x, y);
             Rotation2d angle = new Rotation2d(x, y);
@@ -172,11 +177,10 @@ public class BetterSwerveKinematics {
                     ay
             );
 
-            var omegaVector = trigThetaAngle.mult(accelerationVector);
+            var omegaVector = trigThetaAngle.mult(accelVector);
 
             double omega = omegaVector.get(1, 0) / speed;
-
-            m_moduleStates[i] = new SwerveModuleState(speed, angle);
+            m_moduleStates[i] = new BetterSwerveModuleState(speed, angle, omega);
         }
 
         return m_moduleStates;
@@ -189,7 +193,7 @@ public class BetterSwerveKinematics {
      * @param chassisSpeeds The desired chassis speed.
      * @return An array containing the module states.
      */
-    public SwerveModuleState[] toSwerveModuleStates(ChassisSpeeds chassisSpeeds) {
+    public BetterSwerveModuleState[] toSwerveModuleStates(ChassisSpeeds chassisSpeeds) {
         return toSwerveModuleStates(chassisSpeeds, new Translation2d());
     }
 

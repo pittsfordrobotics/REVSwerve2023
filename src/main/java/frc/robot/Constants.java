@@ -75,12 +75,14 @@ public final class Constants {
         new Translation2d(-SWERVE_X_LENGTH_METERS / 2, -SWERVE_Y_LENGTH_METERS / 2), // BR
     };
 
+    public static final double SWERVE_MAX_MODULE_VELOCITY_METERS_PER_SECOND = 4.46;
     public static final double SWERVE_MAX_LINEAR_VELOCITY_METERS_PER_SECOND = 4.46; // 4.12 m/s; 4.46 m/s; 4.8 m/s
-    public static final double SWERVE_MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND = 3; // idk what this should be around
+    public static final double SWERVE_MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND = 6; // idk what this should be around
 
     public static final double SWERVE_DRIVE_P = 0;
     public static final double SWERVE_DRIVE_I = 0;
     public static final double SWERVE_DRIVE_D = 0;
+
     public static final double SWERVE_DRIVE_S = 0;
     public static final double SWERVE_DRIVE_V = 0;
     public static final double SWERVE_DRIVE_A = 0;
@@ -88,6 +90,7 @@ public final class Constants {
     public static final double SWERVE_STEER_P = 0;
     public static final double SWERVE_STEER_I = 0;
     public static final double SWERVE_STEER_D = 0;
+    public static final double SWERVE_STEER_FF = 1;
 
     static {
         if (RobotBase.isReal() && ROBOT_DEMO_MODE) {
