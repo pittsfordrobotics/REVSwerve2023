@@ -4,10 +4,8 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.REVLibError;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
-import frc.robot.Constants;
-import frc.robot.RobotContainer;
+import frc.robot.Constants.RobotConstants;
 import frc.robot.util.Alert.AlertType;
-import org.littletonrobotics.junction.Logger;
 
 /**
  * This is a thick wrapper for CANSparkMax because I am lazy
@@ -39,7 +37,7 @@ public class LazySparkMax extends CANSparkMax {
             errors += check(burnFlash());
         }
         if (errors > 0) {
-            new Alert("SparkMAX Errors", Constants.ROBOT_SPARKMAX_HASHMAP.get(port) + " FAILED to initialize (" + port + ").", AlertType.ERROR).set(true);
+            new Alert("SparkMAX Errors", RobotConstants.SPARKMAX_HASHMAP.get(port) + " FAILED to initialize (" + port + ").", AlertType.ERROR).set(true);
         }
     }
 
@@ -77,7 +75,7 @@ public class LazySparkMax extends CANSparkMax {
             errors += check(burnFlash());
         }
         if (errors > 0) {
-            new Alert("SparkMAX Errors", Constants.ROBOT_SPARKMAX_HASHMAP.get(port) + " FAILED to initialize (" + port + ").", AlertType.ERROR).set(true);
+            new Alert("SparkMAX Errors", RobotConstants.SPARKMAX_HASHMAP.get(port) + " FAILED to initialize (" + port + ").", AlertType.ERROR).set(true);
         }
     }
 

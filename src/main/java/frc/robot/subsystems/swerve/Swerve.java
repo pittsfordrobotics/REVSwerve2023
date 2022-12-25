@@ -1,6 +1,5 @@
 package frc.robot.subsystems.swerve;
 
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -9,9 +8,13 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
-import frc.robot.util.*;
+import frc.robot.Constants.RobotConstants;
+import frc.robot.Constants.SwerveConstants;
+import frc.robot.util.Alert;
 import frc.robot.util.Alert.AlertType;
+import frc.robot.util.BetterSwerveKinematics;
+import frc.robot.util.BetterSwerveModuleState;
+import frc.robot.util.SwerveOptimizer;
 import org.littletonrobotics.junction.Logger;
 
 public class Swerve extends SubsystemBase {
@@ -39,8 +42,8 @@ public class Swerve extends SubsystemBase {
     private final GyroIO gyroIO;
     private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
 
-    private final SwerveDriveKinematics driveKinematics = new SwerveDriveKinematics(Constants.SWERVE_MODULE_OFFSETS);
-    private final BetterSwerveKinematics driveKinematicsBetter = new BetterSwerveKinematics(Constants.SWERVE_MODULE_OFFSETS);
+    private final SwerveDriveKinematics driveKinematics = new SwerveDriveKinematics(SwerveConstants.MODULE_OFFSETS);
+    private final BetterSwerveKinematics driveKinematicsBetter = new BetterSwerveKinematics(SwerveConstants.MODULE_OFFSETS);
     private final SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
     private SwerveModuleState[] moduleStates = new SwerveModuleState[]{new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState()};
     private ChassisSpeeds chassisSpeeds = new ChassisSpeeds();
@@ -48,12 +51,9 @@ public class Swerve extends SubsystemBase {
 
     private Rotation2d lastRotation = new Rotation2d();
 
-    private final PIDController xPIDController = new PIDController(0,0,0);
-    private final PIDController yPIDController = new PIDController(0,0,0);
-
     private final Alert pigeonAlert = new Alert("Pigeon not detected! Falling back to estimated angle!", AlertType.ERROR);
+    private final static Swerve INSTANCE = new Swerve(RobotConstants.FL_MODULE, RobotConstants.FR_MODULE, RobotConstants.BL_MODULE, RobotConstants.BR_MODULE, RobotConstants.GYRO);
 
-    private final static Swerve INSTANCE = new Swerve(Constants.ROBOT_FL_SWERVE_MODULE, Constants.ROBOT_FR_SWERVE_MODULE, Constants.ROBOT_BL_SWERVE_MODULE, Constants.ROBOT_BR_SWERVE_MODULE, Constants.ROBOT_GYRO);
 
     public static Swerve getInstance() {
         return INSTANCE;
@@ -107,29 +107,41 @@ public class Swerve extends SubsystemBase {
         pigeonAlert.set(!gyroInputs.connected);
     }
 
-    public void setModuleStates(BetterSwerveModuleState[] desiredModuleStates) {
-        BetterSwerveModuleState[] moduleStatesOptimized = new BetterSwerveModuleState[4];
+    public void setModuleStates(SwerveModuleState[] desiredModuleStates) {
+        SwerveModuleState[] moduleStatesOptimized = new SwerveModuleState[4];
         for (int i = 0; i < 4; i++) {
             moduleStatesOptimized[i] = SwerveOptimizer.optimize(desiredModuleStates[i], modulePositions[i].angle);
         }
-        BetterSwerveKinematics.desaturateWheelSpeeds(moduleStatesOptimized, Constants.SWERVE_MAX_MODULE_VELOCITY_METERS_PER_SECOND);
+        SwerveDriveKinematics.desaturateWheelSpeeds(moduleStatesOptimized, SwerveConstants.MAX_MODULE_VELOCITY_METERS_PER_SECOND);
         for (int i = 0; i < 4; i++) {
             moduleIO[i].setModuleState(moduleStatesOptimized[i]);
         }
         moduleStates = moduleStatesOptimized;
     }
 
-    public void setModuleStates(ChassisSpeeds speeds) {
-        setModuleStates(driveKinematicsBetter.toSwerveModuleStates(speeds));
+    public void setBetterModuleStates(BetterSwerveModuleState[] desiredModuleStates) {
+        BetterSwerveModuleState[] moduleStatesOptimized = new BetterSwerveModuleState[4];
+        for (int i = 0; i < 4; i++) {
+            moduleStatesOptimized[i] = SwerveOptimizer.optimize(desiredModuleStates[i], modulePositions[i].angle);
+        }
+        BetterSwerveKinematics.desaturateWheelSpeeds(moduleStatesOptimized, SwerveConstants.MAX_MODULE_VELOCITY_METERS_PER_SECOND);
+        for (int i = 0; i < 4; i++) {
+            moduleIO[i].setBetterModuleState(moduleStatesOptimized[i]);
+        }
+        moduleStates = moduleStatesOptimized;
+    }
+
+    public void setChassisSpeeds(ChassisSpeeds speeds) {
+        setBetterModuleStates(driveKinematicsBetter.toSwerveModuleStates(speeds));
     }
 
     public void driveFieldOrientated(double vxMetersPerSecond, double vyMetersPerSecond, double omegaRadiansPerSecond) {
-        setModuleStates(ChassisSpeeds.fromFieldRelativeSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, getPose().getRotation()));
+        setChassisSpeeds(ChassisSpeeds.fromFieldRelativeSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, getPose().getRotation()));
     }
 
 //    drives wheels at x to prevent being shoved
     public void driveX() {
-        setModuleStates(new BetterSwerveModuleState[]{
+        setBetterModuleStates(new BetterSwerveModuleState[]{
                 new BetterSwerveModuleState(0.1, Rotation2d.fromDegrees(-45), 0),
                 new BetterSwerveModuleState(0.1, Rotation2d.fromDegrees(225), 0),
                 new BetterSwerveModuleState(0.1, Rotation2d.fromDegrees(45), 0),
@@ -138,7 +150,7 @@ public class Swerve extends SubsystemBase {
     }
 
     public void driveZero() {
-        setModuleStates(new BetterSwerveModuleState[]{
+        setBetterModuleStates(new BetterSwerveModuleState[]{
                 new BetterSwerveModuleState(0, new Rotation2d(0),0),
                 new BetterSwerveModuleState(0, new Rotation2d(0),0),
                 new BetterSwerveModuleState(0, new Rotation2d(0),0),
@@ -174,7 +186,7 @@ public class Swerve extends SubsystemBase {
             return Rotation2d.fromRadians(-gyroInputs.yawPositionRad);
         }
         else {
-            return Rotation2d.fromRadians(chassisSpeeds.omegaRadiansPerSecond * Constants.ROBOT_LOOP_TIME_SECONDS + lastRotation.getRadians());
+            return Rotation2d.fromRadians(chassisSpeeds.omegaRadiansPerSecond * RobotConstants.LOOP_TIME_SECONDS + lastRotation.getRadians());
         }
     }
 }

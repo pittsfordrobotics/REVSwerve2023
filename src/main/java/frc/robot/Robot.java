@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.Constants.RobotConstants;
 import frc.robot.util.Alert;
 import frc.robot.util.Alert.AlertType;
 import frc.robot.util.PIDTuner;
@@ -27,15 +28,14 @@ public class Robot extends LoggedRobot {
   private final Alert driverControllerAlert = new Alert("Driver Controller is NOT detected!", AlertType.ERROR);
   private final Alert operatorControllerAlert = new Alert("Operator Controller is NOT detected!", AlertType.ERROR);
 
-
   private RobotContainer robotContainer;
 
   @Override
   public void robotInit() {
     Logger logger = Logger.getInstance();
     setUseTiming(true);
-    logger.recordMetadata("PIDTuner", Boolean.toString(Constants.ROBOT_PID_TUNER_ENABLED));
-    logger.recordMetadata("Demo Mode", Boolean.toString(Constants.ROBOT_DEMO_MODE));
+    logger.recordMetadata("PIDTuner", Boolean.toString(RobotConstants.PID_TUNER_ENABLED));
+    logger.recordMetadata("Demo Mode", Boolean.toString(RobotConstants.DEMO_MODE));
     logger.recordMetadata("RuntimeType", getRuntimeType().toString());
     logger.recordMetadata("ProjectName", BuildConstants.MAVEN_NAME);
     logger.recordMetadata("BuildDate", BuildConstants.BUILD_DATE);
@@ -57,13 +57,13 @@ public class Robot extends LoggedRobot {
 //    Logger
     logger.addDataReceiver(new NT4Publisher());
     if (RobotBase.isReal()) {
-      logger.addDataReceiver(new WPILOGWriter(Constants.ROBOT_LOGGING_PATH));
+      logger.addDataReceiver(new WPILOGWriter(RobotConstants.LOGGING_PATH));
       LoggedPowerDistribution.getInstance();
     }
-    if (Constants.ROBOT_LOGGING_ENABLED) {
+    if (RobotConstants.LOGGING_ENABLED) {
       logger.start();
     }
-    PIDTuner.enable(Constants.ROBOT_PID_TUNER_ENABLED);
+    PIDTuner.enable(RobotConstants.PID_TUNER_ENABLED);
 
     robotContainer = new RobotContainer();
   }

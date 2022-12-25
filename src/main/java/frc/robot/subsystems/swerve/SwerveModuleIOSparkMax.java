@@ -6,7 +6,8 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.SparkMaxPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
-import frc.robot.Constants;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
+import frc.robot.Constants.SwerveConstants;
 import frc.robot.util.BetterSwerveModuleState;
 import frc.robot.util.LazySparkMax;
 
@@ -19,7 +20,7 @@ public class SwerveModuleIOSparkMax implements SwerveModuleIO {
     private final RelativeEncoder steerAbsoluteEncoder;
 
     private final SparkMaxPIDController drivePID;
-    private final SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(Constants.SWERVE_DRIVE_S, Constants.SWERVE_DRIVE_V, Constants.SWERVE_DRIVE_A);
+    private final SimpleMotorFeedforward feedforward = new SimpleMotorFeedforward(SwerveConstants.MODULE_DRIVE_S, SwerveConstants.MODULE_DRIVE_V, SwerveConstants.MODULE_DRIVE_A);
     private final SparkMaxPIDController steerPID;
 
     public SwerveModuleIOSparkMax(int driveID, int steerID, Rotation2d offset) {
@@ -28,25 +29,25 @@ public class SwerveModuleIOSparkMax implements SwerveModuleIO {
 
         driveRelativeEncoder = driveMotor.getEncoder();
         steerRelativeEncoder = steerMotor.getEncoder();
-        steerAbsoluteEncoder = steerMotor.getAlternateEncoder(Constants.SWERVE_THROUGH_BORE_COUNTS_PER_REV);
+        steerAbsoluteEncoder = steerMotor.getAlternateEncoder(SwerveConstants.THROUGH_BORE_COUNTS_PER_REV);
 
-        driveRelativeEncoder.setPositionConversionFactor(Math.PI * Constants.SWERVE_WHEEL_DIAMETER_METERS / Constants.SWERVE_DRIVE_GEAR_RATIO);
-        driveRelativeEncoder.setVelocityConversionFactor(Math.PI * Constants.SWERVE_WHEEL_DIAMETER_METERS / Constants.SWERVE_DRIVE_GEAR_RATIO / 60);
-        steerRelativeEncoder.setPositionConversionFactor(2 * Math.PI / Constants.SWERVE_STEER_GEAR_RATIO);
-        steerRelativeEncoder.setVelocityConversionFactor(2 * Math.PI / Constants.SWERVE_STEER_GEAR_RATIO / 60);
+        driveRelativeEncoder.setPositionConversionFactor(Math.PI * SwerveConstants.WHEEL_DIAMETER_METERS / SwerveConstants.DRIVE_GEAR_RATIO);
+        driveRelativeEncoder.setVelocityConversionFactor(Math.PI * SwerveConstants.WHEEL_DIAMETER_METERS / SwerveConstants.DRIVE_GEAR_RATIO / 60);
+        steerRelativeEncoder.setPositionConversionFactor(2 * Math.PI / SwerveConstants.STEER_GEAR_RATIO);
+        steerRelativeEncoder.setVelocityConversionFactor(2 * Math.PI / SwerveConstants.STEER_GEAR_RATIO / 60);
         steerAbsoluteEncoder.setPositionConversionFactor(2 * Math.PI);
         steerAbsoluteEncoder.setVelocityConversionFactor(2 * Math.PI / 60);
 
         drivePID = driveMotor.getPIDController();
         steerPID = steerMotor.getPIDController();
 
-        drivePID.setP(Constants.SWERVE_DRIVE_P);
-        drivePID.setI(Constants.SWERVE_DRIVE_I);
-        drivePID.setD(Constants.SWERVE_DRIVE_D);
+        drivePID.setP(SwerveConstants.MODULE_DRIVE_P);
+        drivePID.setI(SwerveConstants.MODULE_DRIVE_I);
+        drivePID.setD(SwerveConstants.MODULE_DRIVE_D);
 
-        steerPID.setP(Constants.SWERVE_STEER_P);
-        steerPID.setI(Constants.SWERVE_STEER_I);
-        steerPID.setD(Constants.SWERVE_STEER_D);
+        steerPID.setP(SwerveConstants.MODULE_STEER_P);
+        steerPID.setI(SwerveConstants.MODULE_STEER_I);
+        steerPID.setD(SwerveConstants.MODULE_STEER_D);
 
 //        saves PID Config
         driveMotor.burnFlash();
@@ -83,9 +84,15 @@ public class SwerveModuleIOSparkMax implements SwerveModuleIO {
     }
 
     @Override
-    public void setModuleState(BetterSwerveModuleState state) {
+    public void setModuleState(SwerveModuleState state) {
         drivePID.setReference(state.speedMetersPerSecond, ControlType.kVelocity, 0, feedforward.calculate(state.speedMetersPerSecond));
-        steerPID.setReference(state.angle.getRadians(), ControlType.kPosition, 0, state.omegaRadPerSecond * Constants.SWERVE_STEER_FF);
+        steerPID.setReference(state.angle.getRadians(), ControlType.kPosition);
+    }
+
+    @Override
+    public void setBetterModuleState(BetterSwerveModuleState state) {
+        drivePID.setReference(state.speedMetersPerSecond, ControlType.kVelocity, 0, feedforward.calculate(state.speedMetersPerSecond));
+        steerPID.setReference(state.angle.getRadians(), ControlType.kPosition, 0, state.omegaRadPerSecond * SwerveConstants.MODULE_STEER_FF);
     }
 
     @Override

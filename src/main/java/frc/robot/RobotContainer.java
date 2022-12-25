@@ -11,7 +11,9 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.robot.Constants.RobotConstants;
 import frc.robot.commands.SwerveDriveFieldXbox;
+import frc.robot.commands.SwervePathing;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.util.controller.BetterXboxController;
 
@@ -26,7 +28,7 @@ public class RobotContainer {
     autoConfig();
     driverDashboardSetup();
 
-    if (Constants.ROBOT_DEMO_MODE) {
+    if (RobotConstants.DEMO_MODE) {
       demoButtons();
     }
     else {
@@ -49,6 +51,7 @@ public class RobotContainer {
 
   private void autoConfig() {
     autoChooser.setDefaultOption("No auto", new WaitCommand(0));
+    autoChooser.addOption("Test", new SwervePathing(Paths.test, true));
 
     SmartDashboard.putData("Auto Command", autoChooser);
   }

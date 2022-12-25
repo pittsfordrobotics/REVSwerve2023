@@ -1,13 +1,13 @@
 package frc.robot.subsystems.swerve;
 
 import com.ctre.phoenix.sensors.WPI_Pigeon2;
-import frc.robot.Constants;
+import frc.robot.Constants.SwerveConstants;
 
 public class GyroIOPigeon implements GyroIO{
-    private final WPI_Pigeon2 pigeon = new WPI_Pigeon2(Constants.SWERVE_CAN_PIGEON);
+    private final WPI_Pigeon2 pigeon = new WPI_Pigeon2(SwerveConstants.CAN_PIGEON);
 
     public GyroIOPigeon() {
-        pigeon.configAllSettings(Constants.SWERVE_PIGEON_CONFIG);
+        pigeon.configAllSettings(SwerveConstants.PIGEON_CONFIG);
         pigeon.reset();
     }
 
