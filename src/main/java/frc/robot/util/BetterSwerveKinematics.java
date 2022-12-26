@@ -73,7 +73,7 @@ public class BetterSwerveKinematics {
      *     component, the robot will rotate around that corner.
      * @return An array containing the module states. Use caution because these module states are not
      *     normalized. Sometimes, a user input may cause one of the module speeds to go above the
-     *     attainable max velocity. Use the {@link #desaturateWheelSpeeds(SwerveModuleState[], double)
+     *     attainable max velocity. Use the {@link #desaturateWheelSpeeds(BetterSwerveModuleState[], double)
      *     DesaturateWheelSpeeds} function to rectify this issue.
      */
     @SuppressWarnings("PMD.MethodReturnsInternalArray")

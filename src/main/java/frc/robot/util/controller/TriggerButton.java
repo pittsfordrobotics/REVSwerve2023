@@ -13,8 +13,11 @@ public class TriggerButton extends Trigger {
         this.hand = hand;
     }
 
-    @Override
-    public boolean getAsBoolean() {
-        return hand == Hand.LEFT ? controller.getLeftTriggerAxis() >= 0.5 : controller.getRightTriggerAxis() >= 0.5;
+    public double get() {
+        return hand == Hand.LEFT ? controller.getLeftTriggerAxis() : controller.getRightTriggerAxis();
+    }
+
+    public boolean getAsBoolean(double threshold) {
+        return hand == Hand.LEFT ? controller.getLeftTriggerAxis() >= threshold : controller.getRightTriggerAxis() >= threshold;
     }
 }

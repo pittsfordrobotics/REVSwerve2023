@@ -54,7 +54,7 @@ public class Robot extends LoggedRobot {
         break;
     }
 
-//    Logger
+//    Logger startup
     logger.addDataReceiver(new NT4Publisher());
     if (RobotBase.isReal()) {
       logger.addDataReceiver(new WPILOGWriter(RobotConstants.LOGGING_PATH));
@@ -65,6 +65,7 @@ public class Robot extends LoggedRobot {
     }
     PIDTuner.enable(RobotConstants.PID_TUNER_ENABLED);
 
+    DriverStation.silenceJoystickConnectionWarning(true);
     robotContainer = new RobotContainer();
   }
 
@@ -81,7 +82,7 @@ public class Robot extends LoggedRobot {
 
     logReceiverQueueAlert.set(Logger.getInstance().getReceiverQueueFault());
 
-    new BetterXboxController(0, BetterXboxController.Hand.LEFT, BetterXboxController.Humans.DRIVER);
+    new BetterXboxController(0, BetterXboxController.Humans.DRIVER);
     new BetterXboxController(1, BetterXboxController.Humans.OPERATOR);
 
     driverControllerAlert.set(!DriverStation.isJoystickConnected(0));

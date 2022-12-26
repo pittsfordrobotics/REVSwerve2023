@@ -2,22 +2,20 @@ package frc.robot.util.controller;
 
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import edu.wpi.first.wpilibj2.command.button.POVButton;
 
 import java.util.HashMap;
 
 public class BetterXboxController extends XboxController {
-    private final Hand hand;
     public final JoystickButton A;
     public final JoystickButton B;
     public final JoystickButton X;
     public final JoystickButton Y;
     public final JoystickButton LB;
     public final JoystickButton RB;
-    public final POVButton DUp;
-    public final POVButton DRight;
-    public final POVButton DDown;
-    public final POVButton DLeft;
+    public final BetterPOVButton DUp;
+    public final BetterPOVButton DRight;
+    public final BetterPOVButton DDown;
+    public final BetterPOVButton DLeft;
     public final TriggerButton LT;
     public final TriggerButton RT;
     public final JoystickButton Start;
@@ -33,19 +31,18 @@ public class BetterXboxController extends XboxController {
         DRIVER, OPERATOR
     }
 
-    public BetterXboxController(int port, Hand hand, Humans humans) {
+    public BetterXboxController(int port, Humans humans) {
         super(port);
-        this.hand = hand;
         A = new JoystickButton(this, XboxController.Button.kA.value);
         B = new JoystickButton(this, XboxController.Button.kB.value);
         X = new JoystickButton(this, XboxController.Button.kX.value);
         Y = new JoystickButton(this, XboxController.Button.kY.value);
         LB = new JoystickButton(this, XboxController.Button.kLeftBumper.value);
         RB = new JoystickButton(this, XboxController.Button.kRightBumper.value);
-        DUp = new POVButton(this, 0);
-        DRight = new POVButton(this, 90);
-        DDown = new POVButton(this, 180);
-        DLeft = new POVButton(this, 270);
+        DUp = new BetterPOVButton(this, 0);
+        DRight = new BetterPOVButton(this, 90);
+        DDown = new BetterPOVButton(this, 180);
+        DLeft = new BetterPOVButton(this, 270);
         LT = new TriggerButton(this, Hand.LEFT);
         RT = new TriggerButton(this, Hand.RIGHT);
         Back = new JoystickButton(this, XboxController.Button.kBack.value);
@@ -53,16 +50,8 @@ public class BetterXboxController extends XboxController {
         controllers.put(humans, this);
     }
 
-    public BetterXboxController(int port, Humans humans) {
-        this(port, null, humans);
-    }
-
     public static BetterXboxController getController(Humans humans) {
         return controllers.get(humans);
-    }
-
-    public Hand getHand() {
-        return hand;
     }
 
     /** @param value between 0 and 1 */

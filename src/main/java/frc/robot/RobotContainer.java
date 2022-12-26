@@ -19,7 +19,7 @@ import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.util.controller.BetterXboxController;
 
 public class RobotContainer {
-  private final BetterXboxController driverController = new BetterXboxController(0, BetterXboxController.Hand.LEFT, BetterXboxController.Humans.DRIVER);
+  private final BetterXboxController driverController = new BetterXboxController(0, BetterXboxController.Humans.DRIVER);
   private final BetterXboxController operatorController = new BetterXboxController(1, BetterXboxController.Humans.OPERATOR);
 
   private final SendableChooser<Command> autoChooser = new SendableChooser<>();
@@ -44,7 +44,8 @@ public class RobotContainer {
     ShuffleboardTab driverTab = Shuffleboard.getTab("Driver");
   }
 
-  private void testButtons() {}
+  private void testButtons() {
+  }
 
   private void competitionButtons() {}
 
