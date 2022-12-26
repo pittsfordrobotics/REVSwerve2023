@@ -54,7 +54,6 @@ public class Swerve extends SubsystemBase {
     private final Alert pigeonAlert = new Alert("Pigeon not detected! Falling back to estimated angle!", AlertType.ERROR);
     private final static Swerve INSTANCE = new Swerve(RobotConstants.FL_MODULE, RobotConstants.FR_MODULE, RobotConstants.BL_MODULE, RobotConstants.BR_MODULE, RobotConstants.GYRO);
 
-
     public static Swerve getInstance() {
         return INSTANCE;
     }
@@ -65,9 +64,6 @@ public class Swerve extends SubsystemBase {
 
         for (int i = 0; i < 4; i++) {
             moduleIO[i].updateInputs(moduleInputs[i]);
-        }
-        for (int i = 0; i < 4; i++) {
-//            this uses relative steer encoder, this could also use absolute if needed
             modulePositions[i] = new SwerveModulePosition(moduleInputs[i].drivePositionMeters, Rotation2d.fromRadians(moduleInputs[i].steerPositionRad));
         }
 
@@ -105,6 +101,12 @@ public class Swerve extends SubsystemBase {
         Logger.getInstance().recordOutput("Swerve/Chassis Speeds Rot", chassisSpeeds.omegaRadiansPerSecond);
 
         pigeonAlert.set(!gyroInputs.connected);
+    }
+
+    public void setBrakeMode(boolean brake) {
+        for (int i = 0; i < 4; i++) {
+            moduleIO[i].setDriveBrakeMode(brake);
+        }
     }
 
     public void setModuleStates(SwerveModuleState[] desiredModuleStates) {
@@ -149,13 +151,11 @@ public class Swerve extends SubsystemBase {
         });
     }
 
-    public void driveZero() {
-        setBetterModuleStates(new BetterSwerveModuleState[]{
-                new BetterSwerveModuleState(0, new Rotation2d(0),0),
-                new BetterSwerveModuleState(0, new Rotation2d(0),0),
-                new BetterSwerveModuleState(0, new Rotation2d(0),0),
-                new BetterSwerveModuleState(0, new Rotation2d(0),0)
-        });
+    public void stopMotors() {
+        moduleIO[0].stopMotors();
+        moduleIO[1].stopMotors();
+        moduleIO[2].stopMotors();
+        moduleIO[3].stopMotors();
     }
 
     public void resetPose(Pose2d pose) {

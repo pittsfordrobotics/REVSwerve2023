@@ -32,6 +32,8 @@ public interface SwerveModuleIO {
 
     default void setBetterModuleState(BetterSwerveModuleState state) {}
 
+    default void stopMotors() {}
+
     default void setDriveBrakeMode(boolean enable) {}
 
     default void setSteerBrakeMode(boolean enable) {}

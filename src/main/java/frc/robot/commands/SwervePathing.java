@@ -6,7 +6,6 @@ import edu.wpi.first.math.controller.HolonomicDriveController;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants.SwerveConstants;
@@ -15,7 +14,7 @@ import frc.robot.subsystems.swerve.Swerve;
 
 public class SwervePathing extends CommandBase {
     private final Swerve swerve = Swerve.getInstance();
-    private final Trajectory trajectory;
+    private final PathPlannerTrajectory trajectory;
     private final boolean reset;
     private final Timer timer = new Timer();
 
@@ -33,12 +32,11 @@ public class SwervePathing extends CommandBase {
     @Override
     public void initialize() {
         if (reset) {
-            swerve.resetPose(trajectory.getInitialPose());
+            swerve.resetPose(trajectory.getInitialHolonomicPose());
         }
-
         xController.reset();
         yController.reset();
-        rotController.reset(((PathPlannerState) trajectory.sample(0)).holonomicRotation.getDegrees());
+        rotController.reset(trajectory.getInitialHolonomicPose().getRotation().getDegrees());
 
         timer.reset();
         timer.start();
@@ -59,5 +57,6 @@ public class SwervePathing extends CommandBase {
     @Override
     public void end(boolean interrupted) {
         timer.stop();
+        swerve.stopMotors();
     }
 }

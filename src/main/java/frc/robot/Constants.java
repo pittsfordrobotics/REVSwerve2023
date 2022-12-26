@@ -118,11 +118,11 @@ public final class Constants {
         public static final double MODULE_STEER_FF = 1;
 
         // PID values for trajectory follower
-        public static final double LINEAR_P = 2;
+        public static final double LINEAR_P = 10;
         public static final double LINEAR_I = 0;
         public static final double LINEAR_D = 0;
 
-        public static final double ROT_P = 50;
+        public static final double ROT_P = 15;
         public static final double ROT_I = 0;
         public static final double ROT_D = 0;
 
@@ -135,7 +135,6 @@ public final class Constants {
 
         public static final PathConstraints MAX_SPEED = new PathConstraints(MAX_LINEAR_VELOCITY_METERS_PER_SECOND, MAX_LINEAR_ACCELERATION_METERS_PER_SECOND);
         public static final TrapezoidProfile.Constraints ROT_CONSTRAINTS = new TrapezoidProfile.Constraints(MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND, MAX_ANGULAR_ACCELERATION_RADIANS_PER_SECOND);
-
     }
 
 }

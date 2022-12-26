@@ -104,4 +104,10 @@ public class SwerveModuleIOSparkMax implements SwerveModuleIO {
     public void setSteerBrakeMode(boolean enable) {
         steerMotor.setIdleMode(enable ? IdleMode.kBrake : IdleMode.kCoast);
     }
+
+    @Override
+    public void stopMotors() {
+        driveMotor.stopMotor();
+        steerMotor.stopMotor();
+    }
 }

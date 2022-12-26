@@ -78,4 +78,10 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
         steerPosPID.setSetpoint(state.angle.getRadians());
         steerSim.setInputVoltage(steerPosPID.calculate(steerRelativePositionRad) - 0.47 * state.omegaRadPerSecond);
     }
+
+    @Override
+    public void stopMotors() {
+        driveSim.setInputVoltage(0);
+        steerSim.setInputVoltage(0);
+    }
 }
