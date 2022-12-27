@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.RobotConstants;
+import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.util.Alert;
 import frc.robot.util.Alert.AlertType;
 import frc.robot.util.PIDTuner;
@@ -91,7 +92,9 @@ public class Robot extends LoggedRobot {
   }
 
   @Override
-  public void disabledInit() {}
+  public void disabledInit() {
+    Swerve.getInstance().stopMotors();
+  }
 
   @Override
   public void disabledPeriodic() {}

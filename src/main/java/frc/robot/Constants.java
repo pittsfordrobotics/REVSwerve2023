@@ -115,7 +115,7 @@ public final class Constants {
         public static final double MODULE_STEER_P = 0;
         public static final double MODULE_STEER_I = 0;
         public static final double MODULE_STEER_D = 0;
-        public static final double MODULE_STEER_FF = 1;
+        public static final double MODULE_STEER_FF = Robot.isReal() ? -1 : -0.47;
 
         // PID values for trajectory follower
         public static final double LINEAR_P = 10;

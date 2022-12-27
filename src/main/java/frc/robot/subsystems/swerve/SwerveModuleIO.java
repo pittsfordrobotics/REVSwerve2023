@@ -1,6 +1,5 @@
 package frc.robot.subsystems.swerve;
 
-import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.util.BetterSwerveModuleState;
 import org.littletonrobotics.junction.AutoLog;
 
@@ -27,10 +26,8 @@ public interface SwerveModuleIO {
     default void setDriveVoltage(double voltage) {}
 
     default void setSteerVoltage(double voltage) {}
-
-    default void setModuleState(SwerveModuleState state) {}
-
-    default void setBetterModuleState(BetterSwerveModuleState state) {}
+    
+    default void setModuleState(BetterSwerveModuleState state) {}
 
     default void stopMotors() {}
 

@@ -45,7 +45,7 @@ public class Swerve extends SubsystemBase {
     private final SwerveDriveKinematics driveKinematics = new SwerveDriveKinematics(SwerveConstants.MODULE_OFFSETS);
     private final BetterSwerveKinematics driveKinematicsBetter = new BetterSwerveKinematics(SwerveConstants.MODULE_OFFSETS);
     private final SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
-    private SwerveModuleState[] moduleStates = new SwerveModuleState[]{new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState()};
+    private final SwerveModuleState[] moduleStates = new SwerveModuleState[]{new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState()};
     private ChassisSpeeds chassisSpeeds = new ChassisSpeeds();
     private final SwerveDrivePoseEstimator poseEstimator;
 
@@ -96,6 +96,7 @@ public class Swerve extends SubsystemBase {
         Logger.getInstance().recordOutput("Swerve/Pose", getPose());
         Logger.getInstance().recordOutput("Swerve/Wanted States", moduleStates);
         Logger.getInstance().recordOutput("Swerve/Actual States", actualStates);
+        Logger.getInstance().recordOutput("Swerve/Robot Rotation Rad", getRotation().getRadians());
         Logger.getInstance().recordOutput("Swerve/Chassis Speeds X", chassisSpeeds.vxMetersPerSecond);
         Logger.getInstance().recordOutput("Swerve/Chassis Speeds Y", chassisSpeeds.vyMetersPerSecond);
         Logger.getInstance().recordOutput("Swerve/Chassis Speeds Rot", chassisSpeeds.omegaRadiansPerSecond);
@@ -103,38 +104,21 @@ public class Swerve extends SubsystemBase {
         pigeonAlert.set(!gyroInputs.connected);
     }
 
-    public void setBrakeMode(boolean brake) {
-        for (int i = 0; i < 4; i++) {
-            moduleIO[i].setDriveBrakeMode(brake);
-        }
-    }
-
-    public void setModuleStates(SwerveModuleState[] desiredModuleStates) {
-        SwerveModuleState[] moduleStatesOptimized = new SwerveModuleState[4];
-        for (int i = 0; i < 4; i++) {
-            moduleStatesOptimized[i] = SwerveOptimizer.optimize(desiredModuleStates[i], modulePositions[i].angle);
-        }
-        SwerveDriveKinematics.desaturateWheelSpeeds(moduleStatesOptimized, SwerveConstants.MAX_MODULE_VELOCITY_METERS_PER_SECOND);
-        for (int i = 0; i < 4; i++) {
-            moduleIO[i].setModuleState(moduleStatesOptimized[i]);
-        }
-        moduleStates = moduleStatesOptimized;
-    }
-
-    public void setBetterModuleStates(BetterSwerveModuleState[] desiredModuleStates) {
+    public void setModuleStates(BetterSwerveModuleState[] desiredModuleStates) {
         BetterSwerveModuleState[] moduleStatesOptimized = new BetterSwerveModuleState[4];
         for (int i = 0; i < 4; i++) {
             moduleStatesOptimized[i] = SwerveOptimizer.optimize(desiredModuleStates[i], modulePositions[i].angle);
         }
         BetterSwerveKinematics.desaturateWheelSpeeds(moduleStatesOptimized, SwerveConstants.MAX_MODULE_VELOCITY_METERS_PER_SECOND);
         for (int i = 0; i < 4; i++) {
-            moduleIO[i].setBetterModuleState(moduleStatesOptimized[i]);
+            moduleIO[i].setModuleState(moduleStatesOptimized[i]);
+            moduleStates[i].speedMetersPerSecond = moduleStatesOptimized[i].speedMetersPerSecond;
+            moduleStates[i].angle = Rotation2d.fromRadians(moduleStatesOptimized[i].angle.getRadians() + moduleStatesOptimized[i].omegaRadPerSecond * SwerveConstants.MODULE_STEER_FF * 0.1);
         }
-        moduleStates = moduleStatesOptimized;
     }
 
     public void setChassisSpeeds(ChassisSpeeds speeds) {
-        setBetterModuleStates(driveKinematicsBetter.toSwerveModuleStates(speeds));
+        setModuleStates(driveKinematicsBetter.toSwerveModuleStates(speeds));
     }
 
     public void driveFieldOrientated(double vxMetersPerSecond, double vyMetersPerSecond, double omegaRadiansPerSecond) {
@@ -143,12 +127,18 @@ public class Swerve extends SubsystemBase {
 
 //    drives wheels at x to prevent being shoved
     public void driveX() {
-        setBetterModuleStates(new BetterSwerveModuleState[]{
+        setModuleStates(new BetterSwerveModuleState[]{
                 new BetterSwerveModuleState(0.1, Rotation2d.fromDegrees(-45), 0),
                 new BetterSwerveModuleState(0.1, Rotation2d.fromDegrees(225), 0),
                 new BetterSwerveModuleState(0.1, Rotation2d.fromDegrees(45), 0),
                 new BetterSwerveModuleState(0.1, Rotation2d.fromDegrees(135), 0),
         });
+    }
+
+    public void setBrakeMode(boolean brake) {
+        for (int i = 0; i < 4; i++) {
+            moduleIO[i].setDriveBrakeMode(brake);
+        }
     }
 
     public void stopMotors() {

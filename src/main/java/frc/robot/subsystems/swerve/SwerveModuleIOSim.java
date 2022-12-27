@@ -2,7 +2,6 @@ package frc.robot.subsystems.swerve;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import frc.robot.Constants.RobotConstants;
@@ -13,7 +12,7 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
     private final FlywheelSim driveSim = new FlywheelSim(DCMotor.getNEO(1), SwerveConstants.DRIVE_GEAR_RATIO, 0.025);
     private final FlywheelSim steerSim = new FlywheelSim(DCMotor.getNeo550(1), SwerveConstants.STEER_GEAR_RATIO, 0.004096955);
     private final PIDController drivePID = new PIDController(10, 0, 0);
-    private final PIDController steerPosPID = new PIDController(10, 0, 0);
+    private final PIDController steerPosPID = new PIDController(15, 0, 0);
 
     private double steerAbsolutePositionRad = Math.random() * 2.0 * Math.PI;
     private double steerRelativePositionRad = steerAbsolutePositionRad;
@@ -64,19 +63,11 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
     }
 
     @Override
-    public void setModuleState(SwerveModuleState state) {
+    public void setModuleState(BetterSwerveModuleState state) {
         drivePID.setSetpoint(state.speedMetersPerSecond);
         driveSim.setInputVoltage(drivePID.calculate(driveSim.getAngularVelocityRadPerSec() * Math.PI * SwerveConstants.WHEEL_DIAMETER_METERS / SwerveConstants.DRIVE_GEAR_RATIO));
         steerPosPID.setSetpoint(state.angle.getRadians());
-        steerSim.setInputVoltage(steerPosPID.calculate(steerRelativePositionRad));
-    }
-
-    @Override
-    public void setBetterModuleState(BetterSwerveModuleState state) {
-        drivePID.setSetpoint(state.speedMetersPerSecond);
-        driveSim.setInputVoltage(drivePID.calculate(driveSim.getAngularVelocityRadPerSec() * Math.PI * SwerveConstants.WHEEL_DIAMETER_METERS / SwerveConstants.DRIVE_GEAR_RATIO));
-        steerPosPID.setSetpoint(state.angle.getRadians());
-        steerSim.setInputVoltage(steerPosPID.calculate(steerRelativePositionRad) - 0.47 * state.omegaRadPerSecond);
+        steerSim.setInputVoltage(steerPosPID.calculate(steerRelativePositionRad) + SwerveConstants.MODULE_STEER_FF * state.omegaRadPerSecond);
     }
 
     @Override
