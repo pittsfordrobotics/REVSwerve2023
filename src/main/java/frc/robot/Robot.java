@@ -8,6 +8,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Threads;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.Constants.RobotConstants;
@@ -28,6 +29,9 @@ public class Robot extends LoggedRobot {
   private final Alert logReceiverQueueAlert = new Alert("Logging queue is full. Data will NOT be logged.", AlertType.ERROR);
   private final Alert driverControllerAlert = new Alert("Driver Controller is NOT detected!", AlertType.ERROR);
   private final Alert operatorControllerAlert = new Alert("Operator Controller is NOT detected!", AlertType.ERROR);
+
+  private final Timer disabledTimer = new Timer();
+  private final boolean stopped = false;
 
   private RobotContainer robotContainer;
 
@@ -94,13 +98,21 @@ public class Robot extends LoggedRobot {
   @Override
   public void disabledInit() {
     Swerve.getInstance().stopMotors();
+    disabledTimer.reset();
+    disabledTimer.start();
   }
 
   @Override
-  public void disabledPeriodic() {}
+  public void disabledPeriodic() {
+    if (Swerve.getInstance().isStopped() && disabledTimer.hasElapsed(3)) {
+      Swerve.getInstance().setCoastMode();
+      disabledTimer.stop();
+    }
+  }
 
   @Override
   public void autonomousInit() {
+    Swerve.getInstance().setBrakeMode();
     autonomousCommand = robotContainer.getAutonomousCommand();
 
     if (autonomousCommand != null) {
@@ -113,6 +125,7 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void teleopInit() {
+    Swerve.getInstance().setBrakeMode();
     if (autonomousCommand != null) {
       autonomousCommand.cancel();
     }

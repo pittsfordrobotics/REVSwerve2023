@@ -115,26 +115,40 @@ public final class Constants {
         public static final double MODULE_STEER_P = 0;
         public static final double MODULE_STEER_I = 0;
         public static final double MODULE_STEER_D = 0;
-        public static final double MODULE_STEER_FF = Robot.isReal() ? -1 : -0.47;
+        public static final double MODULE_STEER_FF = Robot.isReal() ? -1 : -0.15;
 
+        public static final double MAX_LINEAR_VELOCITY_METERS_PER_SECOND = 4.46; // 1678 ran 4.5 m/s in 2022
+        public static final double MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND = 10.0; // from 1678
+    }
+
+    public static class AutoConstants {
         // PID values for trajectory follower
-        public static final double LINEAR_P = 10;
+        public static final double LINEAR_P = 1;
         public static final double LINEAR_I = 0;
         public static final double LINEAR_D = 0;
 
-        public static final double ROT_P = 15;
+        public static final double ROT_P = 5;
         public static final double ROT_I = 0;
         public static final double ROT_D = 0;
 
-        public static final double MAX_MODULE_VELOCITY_METERS_PER_SECOND = 100;
-        public static final double MAX_LINEAR_VELOCITY_METERS_PER_SECOND = 4.46; // 4.12 m/s; 4.46 m/s; 4.8 m/s
-        public static final double MAX_LINEAR_ACCELERATION_METERS_PER_SECOND = 10;
+//        numbers from 1678
+        public static final double SLOW_LINEAR_VELOCITY_METERS_PER_SECOND = 1.7;
+        public static final double SLOW_LINEAR_ACCELERATION_METERS_PER_SECOND_SQUARED = 2.0;
 
-        public static final double MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND = 12; // idk what this should be around
-        public static final double MAX_ANGULAR_ACCELERATION_RADIANS_PER_SECOND = 100;
+        public static final double MAX_LINEAR_VELOCITY_METERS_PER_SECOND = 2.2;
+        public static final double MAX_LINEAR_ACCELERATION_METERS_PER_SECOND_SQUARED = 2.3;
 
-        public static final PathConstraints MAX_SPEED = new PathConstraints(MAX_LINEAR_VELOCITY_METERS_PER_SECOND, MAX_LINEAR_ACCELERATION_METERS_PER_SECOND);
-        public static final TrapezoidProfile.Constraints ROT_CONSTRAINTS = new TrapezoidProfile.Constraints(MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND, MAX_ANGULAR_ACCELERATION_RADIANS_PER_SECOND);
+        public static final double SLOW_ANGULAR_VELOCITY_METERS_PER_SECOND = 0.8 * Math.PI;
+        public static final double SLOW_ANGULAR_ACCELERATION_METERS_PER_SECOND_SQUARED = Math.pow(SLOW_ANGULAR_VELOCITY_METERS_PER_SECOND, 2);
+
+        public static final double MAX_ANGULAR_VELOCITY_METERS_PER_SECOND = 1.2 * Math.PI;
+        public static final double MAX_ANGULAR_ACCELERATION_METERS_PER_SECOND_SQUARED = Math.pow(MAX_ANGULAR_VELOCITY_METERS_PER_SECOND, 2);
+
+        public static final PathConstraints SLOW_SPEED = new PathConstraints(SLOW_LINEAR_VELOCITY_METERS_PER_SECOND, SLOW_LINEAR_ACCELERATION_METERS_PER_SECOND_SQUARED);
+        public static final PathConstraints MAX_SPEED = new PathConstraints(MAX_LINEAR_VELOCITY_METERS_PER_SECOND, MAX_LINEAR_ACCELERATION_METERS_PER_SECOND_SQUARED);
+
+        public static final TrapezoidProfile.Constraints SLOW_ROT_CONSTRAINTS = new TrapezoidProfile.Constraints(SLOW_ANGULAR_VELOCITY_METERS_PER_SECOND, SLOW_ANGULAR_ACCELERATION_METERS_PER_SECOND_SQUARED);
+        public static final TrapezoidProfile.Constraints MAX_ROT_CONSTRAINTS = new TrapezoidProfile.Constraints(MAX_ANGULAR_VELOCITY_METERS_PER_SECOND, MAX_ANGULAR_ACCELERATION_METERS_PER_SECOND_SQUARED);
     }
 
 }

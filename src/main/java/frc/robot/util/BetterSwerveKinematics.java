@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import org.ejml.simple.SimpleMatrix;
@@ -14,8 +15,15 @@ import org.littletonrobotics.junction.Logger;
 import java.util.Arrays;
 import java.util.Collections;
 
-// TODO: still wip
-public class BetterSwerveKinematics {
+/**
+ * Clone of WPI SwerveKinematics, which implements second order
+ * kinematics when calculating modules states from chassis speed.
+ * <p></p>
+ *
+ * Makes use of {@link BetterSwerveModuleState} to add the angular
+ * velocity that is required of the module as an output.
+ */
+public class BetterSwerveKinematics extends SwerveDriveKinematics {
     private final SimpleMatrix m_inverseKinematics;
     private final SimpleMatrix m_forwardKinematics;
     private final SimpleMatrix bigInverseKinematics;
@@ -34,6 +42,7 @@ public class BetterSwerveKinematics {
      * @param wheelsMeters The locations of the wheels relative to the physical center of the robot.
      */
     public BetterSwerveKinematics(Translation2d... wheelsMeters) {
+        super(wheelsMeters);
         if (wheelsMeters.length < 2) {
             throw new IllegalArgumentException("A swerve drive requires at least two modules");
         }
@@ -88,7 +97,6 @@ public class BetterSwerveKinematics {
 
             return m_moduleStates;
         }
-
 
         if (!centerOfRotationMeters.equals(m_prevCoR)) {
             for (int i = 0; i < m_numModules; i++) {

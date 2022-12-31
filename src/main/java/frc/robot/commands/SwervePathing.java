@@ -8,7 +8,7 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.Constants.SwerveConstants;
+import frc.robot.Constants.AutoConstants;
 import frc.robot.subsystems.swerve.Swerve;
 
 
@@ -18,9 +18,9 @@ public class SwervePathing extends CommandBase {
     private final boolean reset;
     private final Timer timer = new Timer();
 
-    private final PIDController xController = new PIDController(SwerveConstants.LINEAR_P, SwerveConstants.LINEAR_I, SwerveConstants.LINEAR_D);
-    private final PIDController yController = new PIDController(SwerveConstants.LINEAR_P, SwerveConstants.LINEAR_I, SwerveConstants.LINEAR_D);
-    private final ProfiledPIDController rotController = new ProfiledPIDController(SwerveConstants.ROT_P, SwerveConstants.ROT_I, SwerveConstants.ROT_D, SwerveConstants.ROT_CONSTRAINTS);
+    private final PIDController xController = new PIDController(AutoConstants.LINEAR_P, AutoConstants.LINEAR_I, AutoConstants.LINEAR_D);
+    private final PIDController yController = new PIDController(AutoConstants.LINEAR_P, AutoConstants.LINEAR_I, AutoConstants.LINEAR_D);
+    private final ProfiledPIDController rotController = new ProfiledPIDController(AutoConstants.ROT_P, AutoConstants.ROT_I, AutoConstants.ROT_D, AutoConstants.MAX_ROT_CONSTRAINTS);
     private final HolonomicDriveController holonomicDriveController = new HolonomicDriveController(xController, yController, rotController);
 
     public SwervePathing(PathPlannerTrajectory trajectory, boolean reset) {

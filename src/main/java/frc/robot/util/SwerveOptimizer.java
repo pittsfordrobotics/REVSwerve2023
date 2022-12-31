@@ -2,6 +2,7 @@ package frc.robot.util;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import frc.robot.Constants.SwerveConstants;
 
 // From 1678
 public class SwerveOptimizer {
@@ -63,5 +64,12 @@ public class SwerveOptimizer {
             newAngle += 360;
         }
         return newAngle;
+    }
+
+    public static void antiJitter(BetterSwerveModuleState moduleState, BetterSwerveModuleState lastModuleState) {
+        if (Math.abs(moduleState.speedMetersPerSecond) <= (SwerveConstants.MAX_LINEAR_VELOCITY_METERS_PER_SECOND * 0.01)) {
+            moduleState.angle = lastModuleState.angle;
+            moduleState.omegaRadPerSecond = lastModuleState.omegaRadPerSecond;
+        }
     }
 }
