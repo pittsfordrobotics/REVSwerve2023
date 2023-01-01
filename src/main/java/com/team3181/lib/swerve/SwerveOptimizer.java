@@ -1,8 +1,8 @@
 package com.team3181.lib.swerve;
 
+import com.team3181.frc2023.Constants.SwerveConstants;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import com.team3181.frc2023.Constants.SwerveConstants;
 
 // From 1678
 public class SwerveOptimizer {
@@ -20,18 +20,28 @@ public class SwerveOptimizer {
         double delta = targetAngle - currentAngle.getDegrees();
         if (Math.abs(delta) > 90){
             targetSpeed = -targetSpeed;
-            targetAngle = delta > 90 ? (targetAngle -= 180) : (targetAngle += 180);
+            if (delta > 90) {
+                targetAngle -= 180;
+            } else {
+                targetAngle += 180;
+            }
         }
         return new SwerveModuleState(targetSpeed, Rotation2d.fromDegrees(targetAngle));
     }
 
-    public static BetterSwerveModuleState optimize(BetterSwerveModuleState desiredState, Rotation2d currentAngle) {
-        double targetAngle = placeInAppropriate0To360Scope(currentAngle.getDegrees(), desiredState.angle.getDegrees());
+    public static BetterSwerveModuleState optimize(BetterSwerveModuleState desiredState, Rotation2d currentAngle, double secondOrderOffsetDegrees) {
+//        double targetAngle = placeInAppropriate0To360Scope(currentAngle.getDegrees(), desiredState.angle.getDegrees());
+        // TODO: test this
+        double targetAngle = placeInAppropriate0To360Scope(currentAngle.getDegrees(), desiredState.angle.getDegrees() + secondOrderOffsetDegrees);
         double targetSpeed = desiredState.speedMetersPerSecond;
         double delta = targetAngle - currentAngle.getDegrees();
         if (Math.abs(delta) > 90){
             targetSpeed = -targetSpeed;
-            targetAngle = delta > 90 ? (targetAngle -= 180) : (targetAngle += 180);
+            if (delta > 90) {
+                targetAngle -= 180;
+            } else {
+                targetAngle += 180;
+            }
         }
         return new BetterSwerveModuleState(targetSpeed, Rotation2d.fromDegrees(targetAngle), desiredState.omegaRadPerSecond);
     }

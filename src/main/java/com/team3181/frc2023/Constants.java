@@ -128,7 +128,14 @@ public final class Constants {
         public static final double MODULE_STEER_P = 0.01;
         public static final double MODULE_STEER_I = 0;
         public static final double MODULE_STEER_D = 0;
-        public static final double MODULE_STEER_FF = Robot.isReal() ? -0 : -0.15;
+        // irl
+        //
+        //
+        // sim
+        // -0.65 for open loop
+        // -0.15 closed loop
+        public static final double MODULE_STEER_FF_OL = Robot.isReal() ? -0 : -0.65;
+        public static final double MODULE_STEER_FF_CL = Robot.isReal() ? -0 : -0.15;
 
         /**
          *  Pinon    Gear Ratio    Max Speed (m/s)
@@ -149,7 +156,7 @@ public final class Constants {
         public static final double SLOW_LINEAR_VELOCITY_METERS_PER_SECOND = 1.7;
         public static final double SLOW_LINEAR_ACCELERATION_METERS_PER_SECOND_SQUARED = 2.0;
 
-        public static final double MAX_LINEAR_VELOCITY_METERS_PER_SECOND = 2.2;
+        public static final double MAX_LINEAR_VELOCITY_METERS_PER_SECOND = 3.0;
         public static final double MAX_LINEAR_ACCELERATION_METERS_PER_SECOND_SQUARED = 2.3;
 
         public static final double SLOW_ANGULAR_VELOCITY_METERS_PER_SECOND = 0.8 * Math.PI;
@@ -161,7 +168,6 @@ public final class Constants {
         public static final PathConstraints SLOW_SPEED = new PathConstraints(SLOW_LINEAR_VELOCITY_METERS_PER_SECOND, SLOW_LINEAR_ACCELERATION_METERS_PER_SECOND_SQUARED);
         public static final PathConstraints MAX_SPEED = new PathConstraints(MAX_LINEAR_VELOCITY_METERS_PER_SECOND, MAX_LINEAR_ACCELERATION_METERS_PER_SECOND_SQUARED);
 
-        public static final TrapezoidProfile.Constraints SLOW_ROT_CONSTRAINTS = new TrapezoidProfile.Constraints(SLOW_ANGULAR_VELOCITY_METERS_PER_SECOND, SLOW_ANGULAR_ACCELERATION_METERS_PER_SECOND_SQUARED);
         public static final TrapezoidProfile.Constraints MAX_ROT_CONSTRAINTS = new TrapezoidProfile.Constraints(MAX_ANGULAR_VELOCITY_METERS_PER_SECOND, MAX_ANGULAR_ACCELERATION_METERS_PER_SECOND_SQUARED);
     }
 

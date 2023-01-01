@@ -18,33 +18,23 @@ public class Auto5Ball extends SequentialCommandGroup {
                 ),
                 new InstantCommand(() -> System.out.println("Intake Down")),
                 new SwervePathing(Paths.FIVE_BALL.get(0), false),
-                new ParallelDeadlineGroup(
-                        new WaitCommand(1),
-                        new InstantCommand(() -> System.out.println("Wait for Ball"))
-                ),
-                new SwervePathing(Paths.FIVE_BALL.get(1), false),
-                new ParallelDeadlineGroup(
-                        new WaitCommand(1),
-                        new InstantCommand(() -> System.out.println("Wait for Ball"))
-                ),
-                new SwervePathing(Paths.FIVE_BALL.get(2), false),
                 new InstantCommand(() -> System.out.println("Intake Up")),
                 new ParallelDeadlineGroup(
                         new WaitCommand(1),
                         new InstantCommand(() -> System.out.println("Align and Shoot Ball"))
                 ),
                 new InstantCommand(() -> System.out.println("Intake Down")),
-                new SwervePathing(Paths.FIVE_BALL.get(3), false),
+                new SwervePathing(Paths.FIVE_BALL.get(1), false),
                 new ParallelDeadlineGroup(
-                        new WaitCommand(1),
+                        new WaitCommand(0),
                         new InstantCommand(() -> System.out.println("Detecting Ball"))
                 ),
-                new SwervePathing(Paths.FIVE_BALL.get(4), false),
+                new SwervePathing(Paths.FIVE_BALL.get(2), false),
                 new ParallelDeadlineGroup(
-                        new WaitCommand(1),
+                        new WaitCommand(0),
                         new InstantCommand(() -> System.out.println("Wait for Ball"))
                 ),
-                new SwervePathing(Paths.FIVE_BALL.get(5), false),
+                new SwervePathing(Paths.FIVE_BALL.get(3), false),
                 new ParallelDeadlineGroup(
                         new WaitCommand(1),
                         new InstantCommand(() -> System.out.println("Align and shoot"))

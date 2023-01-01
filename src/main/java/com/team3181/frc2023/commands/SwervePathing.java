@@ -27,6 +27,7 @@ public class SwervePathing extends CommandBase {
         addRequirements(this.swerve);
         this.trajectory = trajectory;
         this.reset = reset;
+        rotController.enableContinuousInput(-Math.PI, Math.PI);
     }
 
     @Override
@@ -36,7 +37,7 @@ public class SwervePathing extends CommandBase {
         }
         xController.reset();
         yController.reset();
-        rotController.reset(trajectory.getInitialHolonomicPose().getRotation().getDegrees());
+        rotController.reset(trajectory.getInitialHolonomicPose().getRotation().getRadians());
 
         timer.reset();
         timer.start();
@@ -46,7 +47,7 @@ public class SwervePathing extends CommandBase {
     public void execute() {
         PathPlannerState state = (PathPlannerState) trajectory.sample(timer.get());
         ChassisSpeeds speeds = holonomicDriveController.calculate(swerve.getPose(), state, state.holonomicRotation);
-        swerve.setChassisSpeeds(speeds);
+        swerve.setChassisSpeeds(speeds, false);
     }
 
     @Override

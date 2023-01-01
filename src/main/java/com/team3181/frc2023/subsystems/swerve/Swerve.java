@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.team3181.frc2023.Constants.RobotConstants;
@@ -36,6 +37,7 @@ public class Swerve extends SubsystemBase {
     private final SwerveDrivePoseEstimator poseEstimator;
 
     private Rotation2d lastRotation = new Rotation2d();
+    private boolean isOpenLoop = false;
 
     private final Alert pigeonAlert = new Alert("Pigeon not detected! Falling back to estimated angle!", AlertType.ERROR);
     private final static Swerve INSTANCE = new Swerve(RobotConstants.FL_MODULE, RobotConstants.FR_MODULE, RobotConstants.BL_MODULE, RobotConstants.BR_MODULE, RobotConstants.GYRO);
@@ -66,7 +68,7 @@ public class Swerve extends SubsystemBase {
             actualStates[i] = new SwerveModuleState(moduleInputs[i].driveVelocityMetersPerSec, Rotation2d.fromRadians(moduleInputs[i].steerPositionRad));
             modulePositions[i] = new SwerveModulePosition(moduleInputs[i].drivePositionMeters, Rotation2d.fromRadians(moduleInputs[i].steerPositionRad));
             lastModuleStates[i] = DriverStation.isDisabled() ? new BetterSwerveModuleState(actualStates[i].speedMetersPerSecond, actualStates[i].angle, 0) : lastModuleStates[i]; // just to make logging look clean
-            wantedModuleStates[i] = new SwerveModuleState(lastModuleStates[i].speedMetersPerSecond, Rotation2d.fromRadians(lastModuleStates[i].angle.getRadians() + lastModuleStates[i].omegaRadPerSecond * SwerveConstants.MODULE_STEER_FF * 0.065));
+            wantedModuleStates[i] = new SwerveModuleState(lastModuleStates[i].speedMetersPerSecond, Rotation2d.fromRadians(lastModuleStates[i].angle.getRadians() + lastModuleStates[i].omegaRadPerSecond * (isOpenLoop ? SwerveConstants.MODULE_STEER_FF_OL : SwerveConstants.MODULE_STEER_FF_CL) * 0.065));
         }
         chassisSpeeds = SwerveConstants.DRIVE_KINEMATICS.toChassisSpeeds(actualStates);
 
@@ -92,27 +94,29 @@ public class Swerve extends SubsystemBase {
         pigeonAlert.set(!gyroInputs.connected);
     }
 
-    public void setModuleStates(BetterSwerveModuleState[] desiredModuleStates) {
+    public void setModuleStates(BetterSwerveModuleState[] desiredModuleStates, boolean isOpenLoop) {
+        this.isOpenLoop = isOpenLoop;
         BetterSwerveKinematics.desaturateWheelSpeeds(desiredModuleStates, SwerveConstants.MAX_LINEAR_VELOCITY_METERS_PER_SECOND);
         for (int i = 0; i < 4; i++) {
-            desiredModuleStates[i] = SwerveOptimizer.optimize(desiredModuleStates[i], modulePositions[i].angle);
+            desiredModuleStates[i] = SwerveOptimizer.optimize(desiredModuleStates[i], modulePositions[i].angle, Units.radiansToDegrees(lastModuleStates[i].omegaRadPerSecond * (isOpenLoop ? SwerveConstants.MODULE_STEER_FF_OL : SwerveConstants.MODULE_STEER_FF_CL) * 0.065));
             SwerveOptimizer.antiJitter(desiredModuleStates[i], lastModuleStates[i]); // anti jitter from 364 base falcon swerve
-            moduleIO[i].setModuleState(desiredModuleStates[i]);
+            moduleIO[i].setModuleState(desiredModuleStates[i], isOpenLoop);
 
             lastModuleStates[i] = desiredModuleStates[i]; // for the anti jitter code and logging
         }
     }
 
-    public void setChassisSpeeds(ChassisSpeeds speeds) {
-        setModuleStates(SwerveConstants.DRIVE_KINEMATICS.toSwerveModuleStates(speeds));
+    public void setChassisSpeeds(ChassisSpeeds speeds, boolean isOpenLoop) {
+        setModuleStates(SwerveConstants.DRIVE_KINEMATICS.toSwerveModuleStates(speeds), isOpenLoop);
     }
 
     public void driveFieldOrientated(double vxMetersPerSecond, double vyMetersPerSecond, double omegaRadiansPerSecond) {
-        setChassisSpeeds(ChassisSpeeds.fromFieldRelativeSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, getRotation()));
+        // this uses the rotation from pose because it offsets the initial robot rotation and gyro rotation
+        setChassisSpeeds(ChassisSpeeds.fromFieldRelativeSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, getPose().getRotation()), true);
     }
 
     public void driveRobotOrientated(double vxMetersPerSecond, double vyMetersPerSecond, double omegaRadiansPerSecond) {
-        setChassisSpeeds(new ChassisSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond));
+        setChassisSpeeds(new ChassisSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond), true);
     }
 
 //    drives wheels at x to prevent being shoved
@@ -122,7 +126,7 @@ public class Swerve extends SubsystemBase {
                 new BetterSwerveModuleState(0.1, Rotation2d.fromDegrees(225), 0),
                 new BetterSwerveModuleState(0.1, Rotation2d.fromDegrees(45), 0),
                 new BetterSwerveModuleState(0.1, Rotation2d.fromDegrees(135), 0),
-        });
+        }, true);
     }
 
     public void setBrakeMode() {

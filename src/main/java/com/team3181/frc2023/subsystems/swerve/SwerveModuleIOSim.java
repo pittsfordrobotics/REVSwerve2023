@@ -63,11 +63,17 @@ public class SwerveModuleIOSim implements SwerveModuleIO {
     }
 
     @Override
-    public void setModuleState(BetterSwerveModuleState state) {
-        drivePID.setSetpoint(state.speedMetersPerSecond);
-        driveSim.setInputVoltage(drivePID.calculate(driveSim.getAngularVelocityRadPerSec() * Math.PI * SwerveConstants.WHEEL_DIAMETER_METERS / SwerveConstants.DRIVE_GEAR_RATIO));
+    public void setModuleState(BetterSwerveModuleState state, boolean isOpenLoop) {
+        if (isOpenLoop) {
+            double percent = state.speedMetersPerSecond / SwerveConstants.MAX_LINEAR_VELOCITY_METERS_PER_SECOND;
+            driveSim.setInputVoltage(percent * 12);
+        }
+        else {
+            drivePID.setSetpoint(state.speedMetersPerSecond);
+            driveSim.setInputVoltage(drivePID.calculate(driveSim.getAngularVelocityRadPerSec() * Math.PI * SwerveConstants.WHEEL_DIAMETER_METERS / SwerveConstants.DRIVE_GEAR_RATIO));
+        }
         steerPosPID.setSetpoint(state.angle.getRadians());
-        steerSim.setInputVoltage(steerPosPID.calculate(steerRelativePositionRad) + SwerveConstants.MODULE_STEER_FF * state.omegaRadPerSecond);
+        steerSim.setInputVoltage(steerPosPID.calculate(steerRelativePositionRad) + (isOpenLoop ? SwerveConstants.MODULE_STEER_FF_OL : SwerveConstants.MODULE_STEER_FF_CL) * state.omegaRadPerSecond);
     }
 
     @Override

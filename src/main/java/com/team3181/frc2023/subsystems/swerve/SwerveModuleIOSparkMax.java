@@ -83,9 +83,15 @@ public class SwerveModuleIOSparkMax implements SwerveModuleIO {
     }
 
     @Override
-    public void setModuleState(BetterSwerveModuleState state) {
-        drivePID.setReference(state.speedMetersPerSecond, ControlType.kVelocity, 0, feedforward.calculate(state.speedMetersPerSecond));
-        steerPID.setReference(state.angle.getRadians(), ControlType.kPosition, 0, state.omegaRadPerSecond * SwerveConstants.MODULE_STEER_FF);
+    public void setModuleState(BetterSwerveModuleState state, boolean isOpenLoop) {
+        if (isOpenLoop) {
+            double percent = state.speedMetersPerSecond / SwerveConstants.MAX_LINEAR_VELOCITY_METERS_PER_SECOND;
+            driveMotor.set(percent);
+        }
+        else {
+            drivePID.setReference(state.speedMetersPerSecond, ControlType.kVelocity, 0, feedforward.calculate(state.speedMetersPerSecond));
+        }
+        steerPID.setReference(state.angle.getRadians(), ControlType.kPosition, 0, state.omegaRadPerSecond * (isOpenLoop ? SwerveConstants.MODULE_STEER_FF_OL : SwerveConstants.MODULE_STEER_FF_CL));
     }
 
     @Override

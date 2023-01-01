@@ -27,7 +27,7 @@ public interface SwerveModuleIO {
 
     default void setSteerVoltage(double voltage) {}
     
-    default void setModuleState(BetterSwerveModuleState state) {}
+    default void setModuleState(BetterSwerveModuleState state, boolean isOpenLoop) {}
 
     default void stopMotors() {}
 
