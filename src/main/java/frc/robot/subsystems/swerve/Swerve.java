@@ -4,9 +4,9 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.SwerveConstants;
@@ -18,28 +18,14 @@ public class Swerve extends SubsystemBase {
     /*
      * Swerve Module Orientation
      *        FL  FR
-     *
      *        BL  BR
      */
     private final SwerveModuleIO[] moduleIO;
     private final SwerveModuleIOInputsAutoLogged[] moduleInputs = new SwerveModuleIOInputsAutoLogged[] {new SwerveModuleIOInputsAutoLogged(), new SwerveModuleIOInputsAutoLogged(), new SwerveModuleIOInputsAutoLogged(), new SwerveModuleIOInputsAutoLogged()};
 
-    public enum Modules {
-        FRONT_LEFT(0), FRONT_RIGHT(1), BOTTOM_LEFT(2), BOTTOM_RIGHT(3);
-
-        final int id;
-        Modules(int id){
-            this.id = id;
-        }
-        public int getId() {
-            return id;
-        }
-    }
-
     private final GyroIO gyroIO;
     private final GyroIOInputsAutoLogged gyroInputs = new GyroIOInputsAutoLogged();
 
-    private final BetterSwerveKinematics driveKinematics = new BetterSwerveKinematics(SwerveConstants.MODULE_OFFSETS);
     private final SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
     private final BetterSwerveModuleState[] lastModuleStates = new BetterSwerveModuleState[4];
     private ChassisSpeeds chassisSpeeds = new ChassisSpeeds();
@@ -64,7 +50,7 @@ public class Swerve extends SubsystemBase {
             lastModuleStates[i] = new BetterSwerveModuleState(0, Rotation2d.fromRadians(moduleInputs[i].steerPositionRad), 0);
         }
 
-        poseEstimator = new SwerveDrivePoseEstimator(driveKinematics, new Rotation2d(), modulePositions, new Pose2d());
+        poseEstimator = new SwerveDrivePoseEstimator(SwerveConstants.DRIVE_KINEMATICS, new Rotation2d(), modulePositions, new Pose2d());
     }
 
     @Override
@@ -75,10 +61,10 @@ public class Swerve extends SubsystemBase {
             moduleIO[i].updateInputs(moduleInputs[i]);
             actualStates[i] = new SwerveModuleState(moduleInputs[i].driveVelocityMetersPerSec, Rotation2d.fromRadians(moduleInputs[i].steerPositionRad));
             modulePositions[i] = new SwerveModulePosition(moduleInputs[i].drivePositionMeters, Rotation2d.fromRadians(moduleInputs[i].steerPositionRad));
-
+            lastModuleStates[i] = DriverStation.isDisabled() ? new BetterSwerveModuleState(actualStates[i].speedMetersPerSecond, actualStates[i].angle, 0) : lastModuleStates[i]; // just to make logging look clean
             wantedModuleStates[i] = new SwerveModuleState(lastModuleStates[i].speedMetersPerSecond, Rotation2d.fromRadians(lastModuleStates[i].angle.getRadians() + lastModuleStates[i].omegaRadPerSecond * SwerveConstants.MODULE_STEER_FF * 0.065));
         }
-        chassisSpeeds = driveKinematics.toChassisSpeeds(actualStates);
+        chassisSpeeds = SwerveConstants.DRIVE_KINEMATICS.toChassisSpeeds(actualStates);
 
         Logger.getInstance().processInputs("FL Swerve Module", moduleInputs[0]);
         Logger.getInstance().processInputs("FR Swerve Module", moduleInputs[1]);
@@ -103,25 +89,26 @@ public class Swerve extends SubsystemBase {
     }
 
     public void setModuleStates(BetterSwerveModuleState[] desiredModuleStates) {
-        BetterSwerveModuleState[] moduleStatesOptimized = new BetterSwerveModuleState[4];
+        BetterSwerveKinematics.desaturateWheelSpeeds(desiredModuleStates, SwerveConstants.MAX_LINEAR_VELOCITY_METERS_PER_SECOND);
         for (int i = 0; i < 4; i++) {
-            moduleStatesOptimized[i] = SwerveOptimizer.optimize(desiredModuleStates[i], modulePositions[i].angle);
-        }
-        BetterSwerveKinematics.desaturateWheelSpeeds(moduleStatesOptimized, SwerveConstants.MAX_LINEAR_VELOCITY_METERS_PER_SECOND);
-        for (int i = 0; i < 4; i++) {
-            SwerveOptimizer.antiJitter(moduleStatesOptimized[i], lastModuleStates[i]); // anti jitter from 364 base falcon swerve
-            moduleIO[i].setModuleState(moduleStatesOptimized[i]);
+            desiredModuleStates[i] = SwerveOptimizer.optimize(desiredModuleStates[i], modulePositions[i].angle);
+            SwerveOptimizer.antiJitter(desiredModuleStates[i], lastModuleStates[i]); // anti jitter from 364 base falcon swerve
+            moduleIO[i].setModuleState(desiredModuleStates[i]);
 
-            lastModuleStates[i] = moduleStatesOptimized[i]; // for the anti jitter code and logging
+            lastModuleStates[i] = desiredModuleStates[i]; // for the anti jitter code and logging
         }
     }
 
     public void setChassisSpeeds(ChassisSpeeds speeds) {
-        setModuleStates(driveKinematics.toSwerveModuleStates(speeds));
+        setModuleStates(SwerveConstants.DRIVE_KINEMATICS.toSwerveModuleStates(speeds));
     }
 
     public void driveFieldOrientated(double vxMetersPerSecond, double vyMetersPerSecond, double omegaRadiansPerSecond) {
         setChassisSpeeds(ChassisSpeeds.fromFieldRelativeSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond, getRotation()));
+    }
+
+    public void driveRobotOrientated(double vxMetersPerSecond, double vyMetersPerSecond, double omegaRadiansPerSecond) {
+        setChassisSpeeds(new ChassisSpeeds(vxMetersPerSecond, vyMetersPerSecond, omegaRadiansPerSecond));
     }
 
 //    drives wheels at x to prevent being shoved
@@ -148,7 +135,6 @@ public class Swerve extends SubsystemBase {
         }
     }
 
-
     public void stopMotors() {
         moduleIO[0].stopMotors();
         moduleIO[1].stopMotors();
@@ -165,10 +151,6 @@ public class Swerve extends SubsystemBase {
 //        if (GeomUtil.distance(pose, getPose()) < 1) {
             poseEstimator.addVisionMeasurement(pose, time);
 //        }
-    }
-
-    public SwerveDriveKinematics getKinematics() {
-        return driveKinematics;
     }
 
     public Pose2d getPose() {

@@ -2,7 +2,6 @@ package frc.robot.commands;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.CommandBase;
-import frc.robot.Constants.SwerveConstants;
 import frc.robot.subsystems.swerve.Swerve;
 import frc.robot.util.controller.BetterXboxController;
 import frc.robot.util.controller.BetterXboxController.Humans;
@@ -20,9 +19,9 @@ public class SwerveDriveFieldXbox extends CommandBase {
 //        bc we have bad controller that will drift and prolly screw up auto
         if (!DriverStation.isAutonomous()) {
             swerve.driveFieldOrientated(
-                    -BetterXboxController.getController(Humans.DRIVER).getLeftY() * SwerveConstants.MAX_LINEAR_VELOCITY_METERS_PER_SECOND,
-                    -BetterXboxController.getController(Humans.DRIVER).getLeftX() * SwerveConstants.MAX_LINEAR_VELOCITY_METERS_PER_SECOND,
-                    BetterXboxController.getController(Humans.DRIVER).getRightX() * SwerveConstants.MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND
+                    BetterXboxController.getController(Humans.DRIVER).getSwerveTranslation().getX(),
+                    BetterXboxController.getController(Humans.DRIVER).getSwerveTranslation().getY(),
+                    BetterXboxController.getController(Humans.DRIVER).getSwerveRotation()
             );
         }
     }

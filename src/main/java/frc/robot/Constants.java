@@ -12,6 +12,7 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
 import frc.robot.subsystems.swerve.*;
+import frc.robot.util.BetterSwerveKinematics;
 
 import java.util.HashMap;
 
@@ -66,6 +67,10 @@ public final class Constants {
         }
     }
 
+    public static final class CAN {
+
+    }
+
     /*  SWERVE: ALL IN METERS  */
     public static final class SwerveConstants {
         public static final int CAN_PIGEON = 0;
@@ -74,6 +79,11 @@ public final class Constants {
             SwerveConstants.PIGEON_CONFIG.EnableCompass = false;
         }
 
+        /*
+         * Swerve Module Orientation
+         *    ^   FL  FR   ^
+         *    |   BL  BR   |
+         */
         public static final int CAN_FL_DRIVE = 1;
         public static final int CAN_FL_STEER = 2;
         public static final int CAN_FR_DRIVE = 3;
@@ -96,6 +106,8 @@ public final class Constants {
             new Translation2d(-X_LENGTH_METERS / 2, Y_LENGTH_METERS / 2), // BL
             new Translation2d(-X_LENGTH_METERS / 2, -Y_LENGTH_METERS / 2), // BR
         };
+        public static final BetterSwerveKinematics DRIVE_KINEMATICS = new BetterSwerveKinematics(MODULE_OFFSETS);
+
         public static final Rotation2d FL_OFFSET = Rotation2d.fromDegrees(0);
         public static final Rotation2d FR_OFFSET = Rotation2d.fromDegrees(0);
         public static final Rotation2d BL_OFFSET = Rotation2d.fromDegrees(0);
@@ -121,7 +133,7 @@ public final class Constants {
         public static final double MAX_ANGULAR_VELOCITY_RADIANS_PER_SECOND = 10.0; // from 1678
     }
 
-    public static class AutoConstants {
+    public static final class AutoConstants {
         // PID values for trajectory follower
         public static final double LINEAR_P = 1;
         public static final double LINEAR_I = 0;
