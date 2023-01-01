@@ -162,11 +162,11 @@ bin/
 *-window.json
 simgui*.json
 
-# Version file
-src/main/java/frc/robot/GitConstants.java
-
 # IntelJ Config files
 .idea/
 
 # Version file
-src/main/java/frc/robot/BuildConstants.java
+src/main/java/com/team3181/frc2023/BuildConstants.java
+
+# Library
+!src/main/java/com/team3181/lib
