@@ -114,6 +114,7 @@ public final class Constants {
         public static final Rotation2d BR_OFFSET = Rotation2d.fromDegrees(0);
 
         // controlling module wheel speed
+        // read this later: https://github.com/Team364/BaseFalconSwerve
         public static final double MODULE_DRIVE_P = 0;
         public static final double MODULE_DRIVE_I = 0;
         public static final double MODULE_DRIVE_D = 0;
@@ -124,7 +125,7 @@ public final class Constants {
         public static final double MODULE_DRIVE_A = 0;
 
         // controlling module position / angle
-        public static final double MODULE_STEER_P = 0;
+        public static final double MODULE_STEER_P = 0.01;
         public static final double MODULE_STEER_I = 0;
         public static final double MODULE_STEER_D = 0;
         public static final double MODULE_STEER_FF = Robot.isReal() ? -0 : -0.15;
