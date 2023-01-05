@@ -135,7 +135,7 @@ public final class Constants {
         // -0.65 for open loop
         // -0.15 closed loop
         public static final double MODULE_STEER_FF_OL = Robot.isReal() ? -0 : -0.65;
-        public static final double MODULE_STEER_FF_CL = Robot.isReal() ? -0 : -0.15;
+        public static final double MODULE_STEER_FF_CL = Robot.isReal() ? -0 : -0.3;
 
         /**
          *  Pinon    Gear Ratio    Max Speed (m/s)
